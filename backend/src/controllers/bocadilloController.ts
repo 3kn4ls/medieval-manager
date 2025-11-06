@@ -16,7 +16,7 @@ export const createBocadillo = async (req: Request, res: Response) => {
     const bocadillo = new Bocadillo({
       ...validatedData,
       semana: week,
-      año: year,
+      ano: year,
     });
 
     await bocadillo.save();
@@ -48,14 +48,14 @@ export const getBocadillosSemanaActual = async (req: Request, res: Response) => 
 
     const bocadillos = await Bocadillo.find({
       semana: week,
-      año: year,
+      ano: year,
     }).sort({ fechaCreacion: -1 });
 
     res.json({
       success: true,
       data: bocadillos,
       semana: week,
-      año: year,
+      ano: year,
     });
   } catch (error) {
     console.error('Error fetching bocadillos:', error);
@@ -75,7 +75,7 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
     const bocadillo = await Bocadillo.findOne({
       _id: id,
       semana: week,
-      año: year,
+      ano: year,
     });
 
     if (!bocadillo) {

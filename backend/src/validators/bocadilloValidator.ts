@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TamañoBocadillo, TipoPan } from '../models/Bocadillo';
+import { TamanoBocadillo, TipoPan } from '../models/Bocadillo';
 
 export const createBocadilloSchema = z
   .object({
@@ -8,7 +8,7 @@ export const createBocadilloSchema = z
       .min(1, 'El nombre es obligatorio')
       .max(50, 'El nombre es demasiado largo')
       .transform((val) => val.toUpperCase()),
-    tamaño: z.nativeEnum(TamañoBocadillo, {
+    tamano: z.nativeEnum(TamanoBocadillo, {
       errorMap: () => ({ message: 'Tamaño inválido' }),
     }),
     tipoPan: z.nativeEnum(TipoPan, {
@@ -25,7 +25,7 @@ export const createBocadilloSchema = z
       // Pan integral y semillas solo pueden ser tamaño normal
       if (
         (data.tipoPan === TipoPan.INTEGRAL || data.tipoPan === TipoPan.SEMILLAS) &&
-        data.tamaño === TamañoBocadillo.GRANDE
+        data.tamano === TamanoBocadillo.GRANDE
       ) {
         return false;
       }

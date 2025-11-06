@@ -1,9 +1,9 @@
-import { TamañoBocadillo, TipoPan } from '../models/Bocadillo';
+import { TamanoBocadillo, TipoPan } from '../models/Bocadillo';
 
 export interface BocataPredefinido {
   nombre: string;
   ingredientes: string[];
-  tamaño: TamañoBocadillo;
+  tamano: TamanoBocadillo;
   tipoPan: TipoPan;
 }
 
@@ -28,19 +28,19 @@ export const BOCATAS_PREDEFINIDOS: BocataPredefinido[] = [
   {
     nombre: 'Alquimista',
     ingredientes: ['Jamón', 'Queso', 'Tomate', 'Lechuga'],
-    tamaño: TamañoBocadillo.NORMAL,
+    tamano: TamanoBocadillo.NORMAL,
     tipoPan: TipoPan.NORMAL,
   },
   {
     nombre: 'Chivito',
     ingredientes: ['Pavo', 'Bacon', 'Huevo', 'Mayonesa'],
-    tamaño: TamañoBocadillo.GRANDE,
+    tamano: TamanoBocadillo.GRANDE,
     tipoPan: TipoPan.NORMAL,
   },
   {
     nombre: 'Blanco y Negro',
     ingredientes: ['Chorizo', 'Tortilla', 'Queso'],
-    tamaño: TamañoBocadillo.NORMAL,
+    tamano: TamanoBocadillo.NORMAL,
     tipoPan: TipoPan.INTEGRAL,
   },
 ];

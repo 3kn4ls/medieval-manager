@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export enum TamañoBocadillo {
+export enum TamanoBocadillo {
   NORMAL = 'normal',
   GRANDE = 'grande',
 }
@@ -13,12 +13,12 @@ export enum TipoPan {
 
 export interface IBocadillo extends Document {
   nombre: string;
-  tamaño: TamañoBocadillo;
+  tamano: TamanoBocadillo;
   tipoPan: TipoPan;
   ingredientes: string[];
   bocataPredefinido?: string;
   semana: number; // Número de semana del año
-  año: number;
+  ano: number;
   fechaCreacion: Date;
 }
 
@@ -29,9 +29,9 @@ const BocadilloSchema: Schema = new Schema({
     uppercase: true,
     trim: true,
   },
-  tamaño: {
+  tamano: {
     type: String,
-    enum: Object.values(TamañoBocadillo),
+    enum: Object.values(TamanoBocadillo),
     required: true,
   },
   tipoPan: {
@@ -57,7 +57,7 @@ const BocadilloSchema: Schema = new Schema({
     type: Number,
     required: true,
   },
-  año: {
+  ano: {
     type: Number,
     required: true,
   },
@@ -68,6 +68,6 @@ const BocadilloSchema: Schema = new Schema({
 });
 
 // Índice para búsquedas eficientes por semana
-BocadilloSchema.index({ semana: 1, año: 1 });
+BocadilloSchema.index({ semana: 1, ano: 1 });
 
 export default mongoose.model<IBocadillo>('Bocadillo', BocadilloSchema);
