@@ -12,19 +12,19 @@ export enum TipoPan {
 export interface Bocadillo {
   _id?: string;
   nombre: string;
-  tamaño: TamanoBocadillo;
+  tamano: TamanoBocadillo;
   tipoPan: TipoPan;
   ingredientes: string[];
   bocataPredefinido?: string;
   semana?: number;
-  año?: number;
+  ano?: number;
   fechaCreacion?: Date;
 }
 
 export interface BocataPredefinido {
   nombre: string;
   ingredientes: string[];
-  tamaño: TamanoBocadillo;
+  tamano: TamanoBocadillo;
   tipoPan: TipoPan;
 }
 

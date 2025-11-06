@@ -43,13 +43,13 @@ export class BocadilloFormComponent implements OnInit {
   initForm() {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.maxLength(50)]],
-      tamaño: [TamanoBocadillo.NORMAL, Validators.required],
+      tamano: [TamanoBocadillo.NORMAL, Validators.required],
       tipoPan: [TipoPan.NORMAL, Validators.required],
       bocataPredefinido: [''],
     });
 
     // Validar restricción de pan integral/semillas con tamaño grande
-    this.form.get('tamaño')?.valueChanges.subscribe(() => this.validatePanRestriction());
+    this.form.get('tamano')?.valueChanges.subscribe(() => this.validatePanRestriction());
     this.form.get('tipoPan')?.valueChanges.subscribe(() => this.validatePanRestriction());
   }
 
@@ -74,11 +74,11 @@ export class BocadilloFormComponent implements OnInit {
   }
 
   validatePanRestriction() {
-    const tamaño = this.form.get('tamaño')?.value;
+    const tamano = this.form.get('tamano')?.value;
     const tipoPan = this.form.get('tipoPan')?.value;
 
     if (
-      tamaño === TamanoBocadillo.GRANDE &&
+      tamano === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     ) {
       this.form.get('tipoPan')?.setValue(TipoPan.NORMAL);
@@ -127,7 +127,7 @@ export class BocadilloFormComponent implements OnInit {
 
     if (bocata) {
       this.form.patchValue({
-        tamaño: bocata.tamaño,
+        tamano: bocata.tamano,
         tipoPan: bocata.tipoPan,
         bocataPredefinido: bocata.nombre,
       });
@@ -174,7 +174,7 @@ export class BocadilloFormComponent implements OnInit {
 
   resetForm() {
     this.form.reset({
-      tamaño: TamanoBocadillo.NORMAL,
+      tamano: TamanoBocadillo.NORMAL,
       tipoPan: TipoPan.NORMAL,
       bocataPredefinido: '',
     });
@@ -184,9 +184,9 @@ export class BocadilloFormComponent implements OnInit {
   }
 
   isPanDisabled(tipoPan: TipoPan): boolean {
-    const tamaño = this.form.get('tamaño')?.value;
+    const tamano = this.form.get('tamano')?.value;
     return (
-      tamaño === TamanoBocadillo.GRANDE &&
+      tamano === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     );
   }
