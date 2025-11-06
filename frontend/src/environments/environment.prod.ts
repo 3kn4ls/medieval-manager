@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api', // Se configurará en Vercel
+  apiUrl: 'https://bocadillos-backend.onrender.com/api',
 };
