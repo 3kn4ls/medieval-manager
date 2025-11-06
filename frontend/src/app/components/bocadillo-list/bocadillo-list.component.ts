@@ -78,8 +78,8 @@ export class BocadilloListComponent implements OnInit {
     });
   }
 
-  getTamañoLabel(tamaño: string): string {
-    return tamaño === 'normal' ? 'Normal' : 'Grande';
+  getTamanoLabel(tamano: string): string {
+    return tamano === 'normal' ? 'Normal' : 'Grande';
   }
 
   getTipoPanLabel(tipoPan: string): string {

@@ -1,4 +1,4 @@
-export enum TamañoBocadillo {
+export enum TamanoBocadillo {
   NORMAL = 'normal',
   GRANDE = 'grande',
 }
@@ -12,7 +12,7 @@ export enum TipoPan {
 export interface Bocadillo {
   _id?: string;
   nombre: string;
-  tamaño: TamañoBocadillo;
+  tamaño: TamanoBocadillo;
   tipoPan: TipoPan;
   ingredientes: string[];
   bocataPredefinido?: string;
@@ -24,7 +24,7 @@ export interface Bocadillo {
 export interface BocataPredefinido {
   nombre: string;
   ingredientes: string[];
-  tamaño: TamañoBocadillo;
+  tamaño: TamanoBocadillo;
   tipoPan: TipoPan;
 }
 

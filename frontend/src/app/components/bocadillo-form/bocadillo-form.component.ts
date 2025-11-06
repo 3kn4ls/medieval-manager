@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
 import {
-  TamañoBocadillo,
+  TamanoBocadillo,
   TipoPan,
   Bocadillo,
   BocataPredefinido,
@@ -32,7 +32,7 @@ export class BocadilloFormComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
 
-  readonly TamañoBocadillo = TamañoBocadillo;
+  readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
 
   ngOnInit() {
@@ -43,7 +43,7 @@ export class BocadilloFormComponent implements OnInit {
   initForm() {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.maxLength(50)]],
-      tamaño: [TamañoBocadillo.NORMAL, Validators.required],
+      tamaño: [TamanoBocadillo.NORMAL, Validators.required],
       tipoPan: [TipoPan.NORMAL, Validators.required],
       bocataPredefinido: [''],
     });
@@ -78,7 +78,7 @@ export class BocadilloFormComponent implements OnInit {
     const tipoPan = this.form.get('tipoPan')?.value;
 
     if (
-      tamaño === TamañoBocadillo.GRANDE &&
+      tamaño === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     ) {
       this.form.get('tipoPan')?.setValue(TipoPan.NORMAL);
@@ -174,7 +174,7 @@ export class BocadilloFormComponent implements OnInit {
 
   resetForm() {
     this.form.reset({
-      tamaño: TamañoBocadillo.NORMAL,
+      tamaño: TamanoBocadillo.NORMAL,
       tipoPan: TipoPan.NORMAL,
       bocataPredefinido: '',
     });
@@ -186,7 +186,7 @@ export class BocadilloFormComponent implements OnInit {
   isPanDisabled(tipoPan: TipoPan): boolean {
     const tamaño = this.form.get('tamaño')?.value;
     return (
-      tamaño === TamañoBocadillo.GRANDE &&
+      tamaño === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     );
   }
