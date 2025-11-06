@@ -1,0 +1,33 @@
+<div class="container">
+  <header class="header">
+    <h1>🥖 Gestor de Pedidos de Bocadillos</h1>
+    <p class="subtitle">Gestiona los pedidos de bocadillos de la oficina</p>
+  </header>
+
+  <!-- Estado de la ventana de pedidos -->
+  <div *ngIf="orderWindowStatus()">
+    <div class="alert alert-success" *ngIf="orderWindowStatus()!.isOpen">
+      ✅ {{ orderWindowStatus()!.message }}
+      <br />
+      <strong>Fecha límite:</strong> {{ getDeadlineDate() }}
+    </div>
+
+    <div class="alert alert-warning" *ngIf="!orderWindowStatus()!.isOpen">
+      ⏰ {{ orderWindowStatus()!.message }}
+      <br />
+      <strong>Próxima apertura:</strong> {{ getNextOpeningDate() }}
+    </div>
+  </div>
+
+  <!-- Formulario (solo si la ventana está abierta) -->
+  <div *ngIf="orderWindowStatus()?.isOpen">
+    <app-bocadillo-form (bocadilloCreated)="onBocadilloCreated($event)" />
+  </div>
+
+  <!-- Lista de bocadillos -->
+  <app-bocadillo-list [refresh]="refreshList()" />
+
+  <footer class="footer">
+    <p>Desarrollado con Angular 19</p>
+  </footer>
+</div>

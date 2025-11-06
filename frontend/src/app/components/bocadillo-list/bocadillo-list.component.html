@@ -1,0 +1,67 @@
+<div class="card">
+  <h2>Pedidos de esta semana</h2>
+
+  <div class="loading" *ngIf="isLoading">
+    Cargando pedidos...
+  </div>
+
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && bocadillos.length === 0 && !errorMessage">
+    <p>No hay pedidos esta semana</p>
+    <p>¡Sé el primero en pedir un bocadillo!</p>
+  </div>
+
+  <div class="bocadillos-grid" *ngIf="!isLoading && bocadillos.length > 0">
+    <div class="bocadillo-card" *ngFor="let bocadillo of bocadillos">
+      <div class="bocadillo-header">
+        <h3>{{ bocadillo.nombre }}</h3>
+        <button
+          *ngIf="canDelete"
+          class="btn-delete"
+          (click)="deleteBocadillo(bocadillo._id!)"
+          title="Eliminar pedido"
+        >
+          🗑️
+        </button>
+      </div>
+
+      <div class="bocadillo-details">
+        <div class="detail-row">
+          <span class="detail-label">Tamaño:</span>
+          <span class="detail-value">{{ getTamañoLabel(bocadillo.tamaño) }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Pan:</span>
+          <span class="detail-value">{{ getTipoPanLabel(bocadillo.tipoPan) }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="bocadillo.bocataPredefinido">
+          <span class="detail-label">Tipo:</span>
+          <span class="detail-value badge-predefinido">{{ bocadillo.bocataPredefinido }}</span>
+        </div>
+      </div>
+
+      <div class="ingredientes">
+        <div class="ingredientes-label">Ingredientes:</div>
+        <div class="ingredientes-list">
+          <span
+            *ngFor="let ingrediente of bocadillo.ingredientes"
+            class="ingrediente-tag"
+          >
+            {{ ingrediente }}
+          </span>
+        </div>
+      </div>
+
+      <div class="bocadillo-footer">
+        <span class="fecha">
+          {{ bocadillo.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+/**
+ * Obtiene el número de semana del año (ISO 8601)
+ */
+export function getWeekNumber(date: Date): { week: number; year: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { week: weekNo, year: d.getUTCFullYear() };
+}
+
+/**
+ * Verifica si la fecha actual está dentro de la ventana de pedidos
+ * Lunes 00:00 - Jueves 17:00
+ */
+export function isWithinOrderWindow(date: Date = new Date()): boolean {
+  const dayOfWeek = date.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+
+  // Lunes (1) a Miércoles (3) - todo el día
+  if (dayOfWeek >= 1 && dayOfWeek <= 3) {
+    return true;
+  }
+
+  // Jueves (4) - hasta las 17:00
+  if (dayOfWeek === 4) {
+    return hours < 17 || (hours === 17 && minutes === 0);
+  }
+
+  // Viernes, Sábado, Domingo - no se permite
+  return false;
+}
+
+/**
+ * Obtiene la fecha del próximo lunes
+ */
+export function getNextMonday(date: Date = new Date()): Date {
+  const result = new Date(date);
+  const dayOfWeek = result.getDay();
+  const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+  result.setDate(result.getDate() + daysUntilMonday);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+/**
+ * Obtiene la fecha del jueves de la semana actual a las 17:00
+ */
+export function getThursdayDeadline(date: Date = new Date()): Date {
+  const result = new Date(date);
+  const dayOfWeek = result.getDay();
+  const daysUntilThursday = dayOfWeek <= 4 ? 4 - dayOfWeek : 11 - dayOfWeek;
+  result.setDate(result.getDate() + daysUntilThursday);
+  result.setHours(17, 0, 0, 0);
+  return result;
+}
+
+/**
+ * Obtiene el lunes de la semana actual
+ */
+export function getCurrentMonday(date: Date = new Date()): Date {
+  const result = new Date(date);
+  const dayOfWeek = result.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  result.setDate(result.getDate() + diff);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}

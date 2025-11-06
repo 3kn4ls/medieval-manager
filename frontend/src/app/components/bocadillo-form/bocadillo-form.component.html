@@ -1,0 +1,166 @@
+<div class="card">
+  <h2>Nuevo Pedido de Bocadillo</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Bocata Predefinido -->
+    <div class="form-group">
+      <label for="bocataPredefinido">Bocata Predefinido (Opcional)</label>
+      <select
+        id="bocataPredefinido"
+        class="form-control"
+        formControlName="bocataPredefinido"
+        (change)="seleccionarBocataPredefinido($event)"
+      >
+        <option value="">-- Selecciona o crea tu propio bocata --</option>
+        <option *ngFor="let bocata of bocatasPredefinidos" [value]="bocata.nombre">
+          {{ bocata.nombre }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="nombre">Nombre *</label>
+      <input
+        type="text"
+        id="nombre"
+        class="form-control"
+        formControlName="nombre"
+        placeholder="Tu nombre"
+        [class.error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
+      />
+      <div
+        class="error-message"
+        *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched"
+      >
+        El nombre es obligatorio
+      </div>
+    </div>
+
+    <!-- Tamaño -->
+    <div class="form-group">
+      <label>Tamaño *</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tamaño"
+            [value]="TamañoBocadillo.NORMAL"
+          />
+          Normal
+        </label>
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tamaño"
+            [value]="TamañoBocadillo.GRANDE"
+          />
+          Grande
+        </label>
+      </div>
+    </div>
+
+    <!-- Tipo de Pan -->
+    <div class="form-group">
+      <label>Tipo de Pan *</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tipoPan"
+            [value]="TipoPan.NORMAL"
+          />
+          Normal
+        </label>
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tipoPan"
+            [value]="TipoPan.INTEGRAL"
+            [disabled]="isPanDisabled(TipoPan.INTEGRAL)"
+          />
+          Integral (solo normal)
+        </label>
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tipoPan"
+            [value]="TipoPan.SEMILLAS"
+            [disabled]="isPanDisabled(TipoPan.SEMILLAS)"
+          />
+          Semillas (solo normal)
+        </label>
+      </div>
+    </div>
+
+    <!-- Ingredientes con Autocompletado -->
+    <div class="form-group">
+      <label for="ingredientes">Ingredientes *</label>
+      <div class="autocomplete-container">
+        <input
+          type="text"
+          id="ingredientes"
+          class="form-control"
+          [value]="ingredienteInput"
+          (input)="onIngredienteInputChange($event)"
+          placeholder="Buscar ingredientes..."
+        />
+
+        <!-- Lista de sugerencias -->
+        <ul class="suggestions" *ngIf="showIngredientesSuggestions">
+          <li
+            *ngFor="let ingrediente of ingredientesFiltrados"
+            (click)="agregarIngrediente(ingrediente)"
+          >
+            {{ ingrediente }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Ingredientes seleccionados -->
+      <div class="selected-items" *ngIf="ingredientesSeleccionados.length > 0">
+        <span
+          *ngFor="let ingrediente of ingredientesSeleccionados"
+          class="chip"
+        >
+          {{ ingrediente }}
+          <button
+            type="button"
+            class="chip-remove"
+            (click)="quitarIngrediente(ingrediente)"
+          >
+            ×
+          </button>
+        </span>
+      </div>
+
+      <div class="error-message" *ngIf="ingredientesSeleccionados.length === 0 && errorMessage">
+        Debes seleccionar al menos un ingrediente
+      </div>
+    </div>
+
+    <!-- Error general -->
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Botones -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="isSubmitting"
+      >
+        {{ isSubmitting ? 'Creando...' : 'Crear Pedido' }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="resetForm()"
+        [disabled]="isSubmitting"
+      >
+        Limpiar
+      </button>
+    </div>
+  </form>
+</div>

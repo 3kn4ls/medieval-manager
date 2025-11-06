@@ -1,0 +1,44 @@
+export enum TamañoBocadillo {
+  NORMAL = 'normal',
+  GRANDE = 'grande',
+}
+
+export enum TipoPan {
+  NORMAL = 'normal',
+  INTEGRAL = 'integral',
+  SEMILLAS = 'semillas',
+}
+
+export interface Bocadillo {
+  _id?: string;
+  nombre: string;
+  tamaño: TamañoBocadillo;
+  tipoPan: TipoPan;
+  ingredientes: string[];
+  bocataPredefinido?: string;
+  semana?: number;
+  año?: number;
+  fechaCreacion?: Date;
+}
+
+export interface BocataPredefinido {
+  nombre: string;
+  ingredientes: string[];
+  tamaño: TamañoBocadillo;
+  tipoPan: TipoPan;
+}
+
+export interface OrderWindowStatus {
+  isOpen: boolean;
+  currentTime: string;
+  deadline: string;
+  nextOpening: string | null;
+  message: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
