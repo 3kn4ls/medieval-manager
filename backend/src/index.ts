@@ -14,7 +14,10 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:4200',
+      'https://medieval-manager.vercel.app',
+    ],
     credentials: true,
   })
 );
