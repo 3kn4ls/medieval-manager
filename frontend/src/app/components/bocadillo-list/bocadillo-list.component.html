@@ -18,14 +18,22 @@
     <div class="bocadillo-card" *ngFor="let bocadillo of bocadillos">
       <div class="bocadillo-header">
         <h3>{{ bocadillo.nombre }}</h3>
-        <button
-          *ngIf="canDelete"
-          class="btn-delete"
-          (click)="deleteBocadillo(bocadillo._id!)"
-          title="Eliminar pedido"
-        >
-          🗑️
-        </button>
+        <div class="action-buttons" *ngIf="canEditOrDelete(bocadillo)">
+          <button
+            class="btn-edit"
+            (click)="editBocadillo(bocadillo)"
+            title="Editar pedido"
+          >
+            ✏️
+          </button>
+          <button
+            class="btn-delete"
+            (click)="deleteBocadillo(bocadillo._id!)"
+            title="Eliminar pedido"
+          >
+            🗑️
+          </button>
+        </div>
       </div>
 
       <div class="bocadillo-details">

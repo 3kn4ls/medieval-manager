@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-title-container">
-    <h2>Nuevo Pedido de Bocadillo</h2>
+    <h2>{{ isEditMode() ? 'Editar Pedido de Bocadillo' : 'Nuevo Pedido de Bocadillo' }}</h2>
     <div class="user-badge">
       <span class="user-icon">👤</span>
       <span class="user-name">{{ userName }}</span>
@@ -138,7 +138,12 @@
         class="btn btn-primary"
         [disabled]="isSubmitting"
       >
-        {{ isSubmitting ? 'Creando...' : 'Crear Pedido' }}
+        <ng-container *ngIf="isEditMode()">
+          {{ isSubmitting ? 'Actualizando...' : 'Actualizar Pedido' }}
+        </ng-container>
+        <ng-container *ngIf="!isEditMode()">
+          {{ isSubmitting ? 'Creando...' : 'Crear Pedido' }}
+        </ng-container>
       </button>
       <button
         type="button"
@@ -146,7 +151,7 @@
         (click)="resetForm()"
         [disabled]="isSubmitting"
       >
-        Limpiar
+        {{ isEditMode() ? 'Cancelar' : 'Limpiar' }}
       </button>
     </div>
   </form>

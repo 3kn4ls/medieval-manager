@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BocadilloService } from '../../services/bocadillo.service';
+import { UserService } from '../../services/user.service';
 import { Bocadillo } from '../../models/bocadillo.model';
 
 @Component({
@@ -12,15 +13,20 @@ import { Bocadillo } from '../../models/bocadillo.model';
 })
 export class BocadilloListComponent implements OnInit {
   private bocadilloService = inject(BocadilloService);
+  private userService = inject(UserService);
 
   refresh = input<number>(0);
+  editRequested = output<Bocadillo>();
 
   bocadillos: Bocadillo[] = [];
   isLoading = false;
   errorMessage = '';
   canDelete = false;
+  currentUserName = '';
 
   ngOnInit() {
+    const currentUser = this.userService.getCurrentUser();
+    this.currentUserName = currentUser?.nombre.toUpperCase() || '';
     this.loadBocadillos();
     this.checkOrderWindow();
   }
@@ -60,6 +66,19 @@ export class BocadilloListComponent implements OnInit {
     });
   }
 
+  canEditOrDelete(bocadillo: Bocadillo): boolean {
+    if (!this.canDelete) {
+      return false;
+    }
+    const isAdmin = this.currentUserName === 'EDUARDO CANALS';
+    const isOwner = bocadillo.nombre === this.currentUserName;
+    return isAdmin || isOwner;
+  }
+
+  editBocadillo(bocadillo: Bocadillo) {
+    this.editRequested.emit(bocadillo);
+  }
+
   deleteBocadillo(id: string) {
     if (!confirm('¿Estás seguro de que quieres eliminar este bocadillo?')) {
       return;
@@ -72,7 +91,8 @@ export class BocadilloListComponent implements OnInit {
         }
       },
       error: (error) => {
-        alert('Error al eliminar el bocadillo');
+        const errorMsg = error.error?.error || 'Error al eliminar el bocadillo';
+        alert(errorMsg);
         console.error(error);
       },
     });
