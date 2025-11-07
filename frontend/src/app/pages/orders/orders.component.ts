@@ -17,6 +17,7 @@ export class OrdersComponent implements OnInit {
 
   orderWindowStatus = signal<OrderWindowStatus | null>(null);
   refreshList = signal<number>(0);
+  editingBocadillo = signal<Bocadillo | null>(null);
 
   ngOnInit() {
     this.checkOrderWindow();
@@ -39,6 +40,17 @@ export class OrdersComponent implements OnInit {
 
   onBocadilloCreated(bocadillo: Bocadillo) {
     this.refreshList.update((value) => value + 1);
+  }
+
+  onBocadilloUpdated(bocadillo: Bocadillo) {
+    this.editingBocadillo.set(null);
+    this.refreshList.update((value) => value + 1);
+  }
+
+  onEditRequested(bocadillo: Bocadillo) {
+    this.editingBocadillo.set(bocadillo);
+    // Scroll al formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   getDeadlineDate(): string {

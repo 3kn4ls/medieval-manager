@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, output } from '@angular/core';
+import { Component, OnInit, inject, output, input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
@@ -23,6 +23,8 @@ export class BocadilloFormComponent implements OnInit {
   private userService = inject(UserService);
 
   bocadilloCreated = output<Bocadillo>();
+  bocadilloUpdated = output<Bocadillo>();
+  editingBocadillo = input<Bocadillo | null>(null);
 
   form!: FormGroup;
   ingredientesDisponibles: string[] = [];
@@ -34,6 +36,17 @@ export class BocadilloFormComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
   userName: string = '';
+
+  constructor() {
+    effect(() => {
+      const bocadillo = this.editingBocadillo();
+      if (bocadillo) {
+        this.loadBocadilloForEdit(bocadillo);
+      } else {
+        this.resetForm();
+      }
+    });
+  }
 
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
@@ -143,6 +156,19 @@ export class BocadilloFormComponent implements OnInit {
     }
   }
 
+  loadBocadilloForEdit(bocadillo: Bocadillo) {
+    this.form.patchValue({
+      tamano: bocadillo.tamano,
+      tipoPan: bocadillo.tipoPan,
+      bocataPredefinido: bocadillo.bocataPredefinido || '',
+    });
+    this.ingredientesSeleccionados = [...bocadillo.ingredientes];
+  }
+
+  isEditMode(): boolean {
+    return this.editingBocadillo() !== null;
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.errorMessage = 'Por favor, completa todos los campos requeridos';
@@ -163,22 +189,48 @@ export class BocadilloFormComponent implements OnInit {
       ingredientes: this.ingredientesSeleccionados,
     };
 
-    this.bocadilloService.createBocadillo(bocadillo).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.bocadilloCreated.emit(response.data);
-          this.resetForm();
-        }
-      },
-      error: (error) => {
-        this.errorMessage =
-          error.error?.message || 'Error al crear el bocadillo. Inténtalo de nuevo.';
+    if (this.isEditMode()) {
+      const editingBocadillo = this.editingBocadillo();
+      if (!editingBocadillo?._id) {
+        this.errorMessage = 'Error: ID de bocadillo no encontrado';
         this.isSubmitting = false;
-      },
-      complete: () => {
-        this.isSubmitting = false;
-      },
-    });
+        return;
+      }
+
+      this.bocadilloService.updateBocadillo(editingBocadillo._id, bocadillo).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.bocadilloUpdated.emit(response.data);
+            this.resetForm();
+          }
+        },
+        error: (error) => {
+          this.errorMessage =
+            error.error?.error || 'Error al actualizar el bocadillo. Inténtalo de nuevo.';
+          this.isSubmitting = false;
+        },
+        complete: () => {
+          this.isSubmitting = false;
+        },
+      });
+    } else {
+      this.bocadilloService.createBocadillo(bocadillo).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.bocadilloCreated.emit(response.data);
+            this.resetForm();
+          }
+        },
+        error: (error) => {
+          this.errorMessage =
+            error.error?.message || 'Error al crear el bocadillo. Inténtalo de nuevo.';
+          this.isSubmitting = false;
+        },
+        complete: () => {
+          this.isSubmitting = false;
+        },
+      });
+    }
   }
 
   resetForm() {

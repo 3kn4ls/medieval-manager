@@ -15,8 +15,13 @@
 
 <!-- Formulario (solo si la ventana está abierta) -->
 <div *ngIf="orderWindowStatus()?.isOpen">
-  <app-bocadillo-form (bocadilloCreated)="onBocadilloCreated($event)" />
+  <app-bocadillo-form
+    [editingBocadillo]="editingBocadillo()"
+    (bocadilloCreated)="onBocadilloCreated($event)"
+    (bocadilloUpdated)="onBocadilloUpdated($event)" />
 </div>
 
 <!-- Lista de bocadillos -->
-<app-bocadillo-list [refresh]="refreshList()" />
+<app-bocadillo-list
+  [refresh]="refreshList()"
+  (editRequested)="onEditRequested($event)" />
