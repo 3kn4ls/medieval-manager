@@ -4,7 +4,7 @@ Aplicación web para gestionar pedidos semanales de bocadillos en la oficina.
 
 ## 📋 Características
 
-- **Ventana de pedidos:** Lunes a Jueves hasta las 17:00
+- **Ventana de pedidos:** Viernes a Jueves hasta las 17:00
 - **Formulario completo:** Nombre, tamaño, tipo de pan, ingredientes
 - **Autocompletado** de ingredientes
 - **Bocatas predefinidos:** Alquimista, Chivito, Blanco y Negro

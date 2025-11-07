@@ -12,15 +12,15 @@ export function getWeekNumber(date: Date): { week: number; year: number } {
 
 /**
  * Verifica si la fecha actual está dentro de la ventana de pedidos
- * Lunes 00:00 - Jueves 17:00
+ * Viernes 00:00 - Jueves 17:00
  */
 export function isWithinOrderWindow(date: Date = new Date()): boolean {
   const dayOfWeek = date.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
   const hours = date.getHours();
   const minutes = date.getMinutes();
 
-  // Lunes (1) a Miércoles (3) - todo el día
-  if (dayOfWeek >= 1 && dayOfWeek <= 3) {
+  // Viernes (5), Sábado (6), Domingo (0), Lunes (1), Martes (2), Miércoles (3) - todo el día
+  if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0 || dayOfWeek >= 1 && dayOfWeek <= 3) {
     return true;
   }
 
@@ -29,12 +29,24 @@ export function isWithinOrderWindow(date: Date = new Date()): boolean {
     return hours < 17 || (hours === 17 && minutes === 0);
   }
 
-  // Viernes, Sábado, Domingo - no se permite
   return false;
 }
 
 /**
- * Obtiene la fecha del próximo lunes
+ * Obtiene la fecha del próximo viernes
+ */
+export function getNextFriday(date: Date = new Date()): Date {
+  const result = new Date(date);
+  const dayOfWeek = result.getDay();
+  // Calcular días hasta el próximo viernes (5)
+  const daysUntilFriday = dayOfWeek === 5 ? 7 : (5 - dayOfWeek + 7) % 7;
+  result.setDate(result.getDate() + (daysUntilFriday === 0 ? 7 : daysUntilFriday));
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+/**
+ * Obtiene la fecha del próximo lunes (mantener por compatibilidad)
  */
 export function getNextMonday(date: Date = new Date()): Date {
   const result = new Date(date);
