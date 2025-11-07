@@ -1,69 +1,37 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BocadilloFormComponent } from './components/bocadillo-form/bocadillo-form.component';
-import { BocadilloListComponent } from './components/bocadillo-list/bocadillo-list.component';
-import { BocadilloService } from './services/bocadillo.service';
-import { Bocadillo, OrderWindowStatus } from './models/bocadillo.model';
+import { RouterModule, Router } from '@angular/router';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, BocadilloFormComponent, BocadilloListComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit {
-  private bocadilloService = inject(BocadilloService);
+  private userService = inject(UserService);
+  private router = inject(Router);
 
-  orderWindowStatus = signal<OrderWindowStatus | null>(null);
-  refreshList = signal<number>(0);
+  showNav = false;
+  currentUser: string = '';
 
   ngOnInit() {
-    this.checkOrderWindow();
-    // Comprobar el estado cada 5 minutos
-    setInterval(() => this.checkOrderWindow(), 5 * 60 * 1000);
-  }
-
-  checkOrderWindow() {
-    this.bocadilloService.getOrderWindowStatus().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.orderWindowStatus.set(response.data);
-        }
-      },
-      error: (error) => {
-        console.error('Error checking order window:', error);
-      },
+    this.userService.user$.subscribe((user) => {
+      this.showNav = user !== null;
+      this.currentUser = user?.nombre || '';
     });
   }
 
-  onBocadilloCreated(bocadillo: Bocadillo) {
-    this.refreshList.update((value) => value + 1);
+  async logout() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      await this.userService.clearUser();
+      this.router.navigate(['/register']);
+    }
   }
 
-  getDeadlineDate(): string {
-    const status = this.orderWindowStatus();
-    if (!status?.deadline) return '';
-    const date = new Date(status.deadline);
-    return date.toLocaleString('es-ES', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  getNextOpeningDate(): string {
-    const status = this.orderWindowStatus();
-    if (!status?.nextOpening) return '';
-    const date = new Date(status.nextOpening);
-    return date.toLocaleString('es-ES', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  isActive(route: string): boolean {
+    return this.router.url.includes(route);
   }
 }

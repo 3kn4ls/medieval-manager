@@ -2,6 +2,7 @@ import { Component, OnInit, inject, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
+import { UserService } from '../../services/user.service';
 import {
   TamanoBocadillo,
   TipoPan,
@@ -19,6 +20,7 @@ import {
 export class BocadilloFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private bocadilloService = inject(BocadilloService);
+  private userService = inject(UserService);
 
   bocadilloCreated = output<Bocadillo>();
 
@@ -31,18 +33,24 @@ export class BocadilloFormComponent implements OnInit {
   showIngredientesSuggestions = false;
   isSubmitting = false;
   errorMessage = '';
+  userName: string = '';
 
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
 
   ngOnInit() {
+    this.loadUserName();
     this.initForm();
     this.loadData();
   }
 
+  loadUserName() {
+    const user = this.userService.getCurrentUser();
+    this.userName = user?.nombre || '';
+  }
+
   initForm() {
     this.form = this.fb.group({
-      nombre: ['', [Validators.required, Validators.maxLength(50)]],
       tamano: [TamanoBocadillo.NORMAL, Validators.required],
       tipoPan: [TipoPan.NORMAL, Validators.required],
       bocataPredefinido: [''],
@@ -151,6 +159,7 @@ export class BocadilloFormComponent implements OnInit {
 
     const bocadillo: Bocadillo = {
       ...this.form.value,
+      nombre: this.userName,
       ingredientes: this.ingredientesSeleccionados,
     };
 

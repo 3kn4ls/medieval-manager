@@ -1,25 +1,101 @@
+/* Compact Header */
 .header {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 12px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   box-shadow: var(--shadow-lg);
+  position: relative;
 }
 
 .header h1 {
-  margin: 0 0 8px 0;
-  font-size: 32px;
+  margin: 0;
+  font-size: 24px;
   font-weight: 700;
 }
 
-.subtitle {
-  margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
 }
 
+.user-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #7f8c8d;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.nav-tab:hover {
+  background: #f8f9fa;
+  color: #667eea;
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.nav-tab .icon {
+  font-size: 24px;
+}
+
+.nav-tab .label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Footer */
 .footer {
   text-align: center;
   padding: 32px 20px;
@@ -28,12 +104,28 @@
   margin-top: 40px;
 }
 
+/* Mobile Responsive */
 @media (max-width: 768px) {
   .header h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
-  .subtitle {
-    font-size: 14px;
+  .user-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .user-badge,
+  .btn-logout {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .nav-tab .icon {
+    font-size: 20px;
+  }
+
+  .nav-tab .label {
+    font-size: 12px;
   }
 }

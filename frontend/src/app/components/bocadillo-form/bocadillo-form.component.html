@@ -1,5 +1,11 @@
 <div class="card">
-  <h2>Nuevo Pedido de Bocadillo</h2>
+  <div class="card-title-container">
+    <h2>Nuevo Pedido de Bocadillo</h2>
+    <div class="user-badge">
+      <span class="user-icon">👤</span>
+      <span class="user-name">{{ userName }}</span>
+    </div>
+  </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <!-- Bocata Predefinido -->
@@ -16,25 +22,6 @@
           {{ bocata.nombre }}
         </option>
       </select>
-    </div>
-
-    <!-- Nombre -->
-    <div class="form-group">
-      <label for="nombre">Nombre *</label>
-      <input
-        type="text"
-        id="nombre"
-        class="form-control"
-        formControlName="nombre"
-        placeholder="Tu nombre"
-        [class.error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
-      />
-      <div
-        class="error-message"
-        *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched"
-      >
-        El nombre es obligatorio
-      </div>
     </div>
 
     <!-- Tamaño -->

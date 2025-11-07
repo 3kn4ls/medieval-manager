@@ -1,0 +1,22 @@
+<!-- Estado de la ventana de pedidos -->
+<div *ngIf="orderWindowStatus()">
+  <div class="alert alert-success" *ngIf="orderWindowStatus()!.isOpen">
+    ✅ {{ orderWindowStatus()!.message }}
+    <br />
+    <strong>Fecha límite:</strong> {{ getDeadlineDate() }}
+  </div>
+
+  <div class="alert alert-warning" *ngIf="!orderWindowStatus()!.isOpen">
+    ⏰ {{ orderWindowStatus()!.message }}
+    <br />
+    <strong>Próxima apertura:</strong> {{ getNextOpeningDate() }}
+  </div>
+</div>
+
+<!-- Formulario (solo si la ventana está abierta) -->
+<div *ngIf="orderWindowStatus()?.isOpen">
+  <app-bocadillo-form (bocadilloCreated)="onBocadilloCreated($event)" />
+</div>
+
+<!-- Lista de bocadillos -->
+<app-bocadillo-list [refresh]="refreshList()" />

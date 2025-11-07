@@ -1,7 +1,36 @@
-h2 {
+.card-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+h2 {
+  margin: 0;
   color: var(--primary-color);
   font-size: 24px;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-icon {
+  font-size: 16px;
+}
+
+.user-name {
+  letter-spacing: 0.5px;
 }
 
 .radio-group {

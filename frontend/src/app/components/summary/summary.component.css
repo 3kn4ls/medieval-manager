@@ -1,0 +1,144 @@
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 24px;
+}
+
+.btn-export {
+  white-space: nowrap;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.summary-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.summary-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.summary-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.summary-table td {
+  padding: 12px;
+  font-size: 14px;
+}
+
+.nombre-cell {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-grande {
+  background-color: #ff6b6b;
+}
+
+.ingredientes-cell {
+  max-width: 300px;
+}
+
+.ingrediente-chip {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 2px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bocata-predefinido {
+  display: inline-block;
+  padding: 4px 12px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.summary-footer {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-export {
+    width: 100%;
+  }
+
+  .summary-table {
+    font-size: 12px;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    padding: 8px 6px;
+  }
+
+  .ingredientes-cell {
+    max-width: 150px;
+  }
+
+  .ingrediente-chip {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+}

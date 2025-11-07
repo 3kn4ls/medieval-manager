@@ -1,0 +1,49 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>🥖 Medieval Manager</h1>
+      <p>Bienvenido al gestor de bocadillos</p>
+    </div>
+
+    <div class="register-body">
+      <h2>Registro de Usuario</h2>
+      <p class="description">
+        Para comenzar a usar la aplicación, introduce tu nombre.
+        Este nombre se asociará automáticamente a todos tus pedidos.
+      </p>
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="nombre">Tu Nombre</label>
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            [(ngModel)]="nombre"
+            name="nombre"
+            placeholder="Ej: Juan García"
+            [disabled]="isSubmitting"
+            autocomplete="name"
+            maxlength="50"
+          />
+        </div>
+
+        <div class="alert alert-danger" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-large"
+          [disabled]="isSubmitting"
+        >
+          {{ isSubmitting ? 'Registrando...' : 'Comenzar' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="register-footer">
+      <p>Tu nombre se guardará localmente en este dispositivo</p>
+    </div>
+  </div>
+</div>
