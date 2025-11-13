@@ -16,6 +16,8 @@ export interface Bocadillo {
   tipoPan: TipoPan;
   ingredientes: string[];
   bocataPredefinido?: string;
+  precio?: number;
+  pagado: boolean;
   semana?: number;
   ano?: number;
   fechaCreacion?: Date;

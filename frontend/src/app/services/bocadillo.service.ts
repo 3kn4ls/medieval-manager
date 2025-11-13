@@ -36,6 +36,22 @@ export class BocadilloService {
     return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/bocadillos/${id}`);
   }
 
+  // Admin: Actualizar precio
+  updatePrecio(id: string, precio: number): Observable<ApiResponse<Bocadillo>> {
+    return this.http.patch<ApiResponse<Bocadillo>>(
+      `${this.apiUrl}/bocadillos/${id}/precio`,
+      { precio }
+    );
+  }
+
+  // Admin: Marcar como pagado
+  markAsPagado(id: string, pagado: boolean): Observable<ApiResponse<Bocadillo>> {
+    return this.http.patch<ApiResponse<Bocadillo>>(
+      `${this.apiUrl}/bocadillos/${id}/pagado`,
+      { pagado }
+    );
+  }
+
   // Menú
   getIngredientes(): Observable<ApiResponse<string[]>> {
     return this.http.get<ApiResponse<string[]>>(`${this.apiUrl}/menu/ingredientes`);
