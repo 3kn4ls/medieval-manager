@@ -6,6 +6,7 @@ import bocadilloRoutes from './routes/bocadilloRoutes';
 import menuRoutes from './routes/menuRoutes';
 import authRoutes from './routes/authRoutes';
 import alquimistaRoutes from './routes/alquimistaRoutes';
+import User, { UserRole } from './models/User';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -51,10 +52,41 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   });
 });
 
+// Función para crear el usuario admin inicial
+const createInitialAdmin = async () => {
+  try {
+    const adminData = {
+      username: 'admin',
+      password: 'admin123',
+      nombre: 'EDUARDO CANALS',
+      role: UserRole.ADMIN,
+    };
+
+    const existingAdmin = await User.findOne({ username: adminData.username });
+
+    if (!existingAdmin) {
+      const admin = new User(adminData);
+      await admin.save();
+      console.log('✅ Usuario administrador inicial creado');
+      console.log(`   Username: ${admin.username}`);
+      console.log(`   Password: ${adminData.password} (cambiar después del primer login)`);
+      console.log(`   Nombre: ${admin.nombre}`);
+    } else {
+      console.log('ℹ️  Usuario administrador ya existe');
+    }
+  } catch (error) {
+    console.error('⚠️  Error al crear usuario administrador inicial:', error);
+    // No detenemos el servidor si falla la creación del admin
+  }
+};
+
 // Iniciar servidor
 const startServer = async () => {
   try {
     await connectDatabase();
+
+    // Crear admin inicial automáticamente
+    await createInitialAdmin();
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
