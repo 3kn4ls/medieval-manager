@@ -193,7 +193,13 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: users,
+      data: users.map(user => ({
+        id: user._id,
+        username: user.username,
+        nombre: user.nombre,
+        role: user.role,
+        createdAt: user.createdAt,
+      })),
     });
   } catch (error) {
     console.error('Error getting users:', error);
