@@ -5,6 +5,7 @@ import { connectDatabase } from './config/database';
 import bocadilloRoutes from './routes/bocadilloRoutes';
 import menuRoutes from './routes/menuRoutes';
 import authRoutes from './routes/authRoutes';
+import alquimistaRoutes from './routes/alquimistaRoutes';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/bocadillos', bocadilloRoutes);
+app.use('/api/alquimista', alquimistaRoutes);
 app.use('/api/menu', menuRoutes);
 
 // Ruta 404

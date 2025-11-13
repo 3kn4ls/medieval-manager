@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BocadilloService } from '../../services/bocadillo.service';
-import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import { Bocadillo } from '../../models/bocadillo.model';
 
 @Component({
@@ -13,7 +13,7 @@ import { Bocadillo } from '../../models/bocadillo.model';
 })
 export class BocadilloListComponent implements OnInit {
   private bocadilloService = inject(BocadilloService);
-  private userService = inject(UserService);
+  private authService = inject(AuthService);
 
   refresh = input<number>(0);
   editRequested = output<Bocadillo>();
@@ -23,10 +23,12 @@ export class BocadilloListComponent implements OnInit {
   errorMessage = '';
   canDelete = false;
   currentUserName = '';
+  isAdmin = false;
 
   ngOnInit() {
-    const currentUser = this.userService.getCurrentUser();
-    this.currentUserName = currentUser?.nombre.toUpperCase() || '';
+    const currentUser = this.authService.getCurrentUser();
+    this.currentUserName = currentUser?.nombre || '';
+    this.isAdmin = this.authService.isAdmin();
     this.loadBocadillos();
     this.checkOrderWindow();
   }
@@ -70,9 +72,8 @@ export class BocadilloListComponent implements OnInit {
     if (!this.canDelete) {
       return false;
     }
-    const isAdmin = this.currentUserName === 'EDUARDO CANALS';
     const isOwner = bocadillo.nombre === this.currentUserName;
-    return isAdmin || isOwner;
+    return this.isAdmin || isOwner;
   }
 
   editBocadillo(bocadillo: Bocadillo) {

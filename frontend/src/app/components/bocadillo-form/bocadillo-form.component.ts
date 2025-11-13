@@ -2,7 +2,7 @@ import { Component, OnInit, inject, output, input, effect } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
-import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import {
   TamanoBocadillo,
   TipoPan,
@@ -20,7 +20,7 @@ import {
 export class BocadilloFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private bocadilloService = inject(BocadilloService);
-  private userService = inject(UserService);
+  private authService = inject(AuthService);
 
   bocadilloCreated = output<Bocadillo>();
   bocadilloUpdated = output<Bocadillo>();
@@ -58,7 +58,7 @@ export class BocadilloFormComponent implements OnInit {
   }
 
   loadUserName() {
-    const user = this.userService.getCurrentUser();
+    const user = this.authService.getCurrentUser();
     this.userName = user?.nombre || '';
   }
 
