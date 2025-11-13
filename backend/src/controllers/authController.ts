@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ZodError } from 'zod';
 import User, { UserRole } from '../models/User';
+import Settings from '../models/Settings';
 import { registerSchema, loginSchema } from '../validators/authValidator';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -9,6 +10,20 @@ const JWT_EXPIRES_IN = '7d';
 
 export const register = async (req: Request, res: Response) => {
   try {
+    // Verificar si el registro público está habilitado
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings({ publicRegistrationEnabled: false });
+      await settings.save();
+    }
+
+    if (!settings.publicRegistrationEnabled) {
+      return res.status(403).json({
+        success: false,
+        error: 'El registro público está deshabilitado. Contacta con un administrador.',
+      });
+    }
+
     const validatedData = registerSchema.parse(req.body);
 
     // Check if user already exists
@@ -235,6 +250,61 @@ export const createUser = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Error al crear el usuario',
+    });
+  }
+};
+
+// Admin: Update user
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { username, nombre, role, password } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado',
+      });
+    }
+
+    // Verificar si el username ya está en uso por otro usuario
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: 'El nombre de usuario ya está en uso',
+        });
+      }
+      user.username = username;
+    }
+
+    // Actualizar campos
+    if (nombre) user.nombre = nombre;
+    if (role) user.role = role;
+    if (password) {
+      // La contraseña se hashea automáticamente en el pre-save hook
+      user.password = password;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      data: {
+        id: user._id,
+        username: user.username,
+        nombre: user.nombre,
+        role: user.role,
+      },
+      message: 'Usuario actualizado correctamente',
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el usuario',
     });
   }
 };
