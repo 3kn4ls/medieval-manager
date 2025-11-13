@@ -3,18 +3,31 @@ import Bocadillo from '../models/Bocadillo';
 import { createBocadilloSchema } from '../validators/bocadilloValidator';
 import { getWeekNumber } from '../utils/dateUtils';
 import { ZodError } from 'zod';
+import { AuthRequest } from '../middleware/auth';
+import { UserRole } from '../models/User';
 
 export const createBocadillo = async (req: Request, res: Response) => {
   try {
+    const user = (req as AuthRequest).user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+    }
+
     // Validar datos de entrada
     const validatedData = createBocadilloSchema.parse(req.body);
 
     // Obtener semana actual
     const { week, year } = getWeekNumber(new Date());
 
-    // Crear bocadillo
+    // Crear bocadillo con el userId y nombre del usuario autenticado
     const bocadillo = new Bocadillo({
       ...validatedData,
+      nombre: user.nombre,
+      userId: user.userId,
       semana: week,
       ano: year,
     });
@@ -70,12 +83,12 @@ export const updateBocadillo = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { week, year } = getWeekNumber(new Date());
-    const currentUser = req.headers['x-user-name'] as string;
+    const user = (req as AuthRequest).user;
 
-    if (!currentUser) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Usuario no identificado',
+        error: 'Usuario no autenticado',
       });
     }
 
@@ -93,9 +106,9 @@ export const updateBocadillo = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar permisos: solo el creador o EDUARDO CANALS pueden editar
-    const isAdmin = currentUser.toUpperCase() === 'EDUARDO CANALS';
-    const isOwner = bocadillo.nombre === currentUser.toUpperCase();
+    // Verificar permisos: solo el creador o un admin pueden editar
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = bocadillo.userId?.toString() === user.userId;
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({
@@ -141,12 +154,12 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { week, year } = getWeekNumber(new Date());
-    const currentUser = req.headers['x-user-name'] as string;
+    const user = (req as AuthRequest).user;
 
-    if (!currentUser) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Usuario no identificado',
+        error: 'Usuario no autenticado',
       });
     }
 
@@ -164,9 +177,9 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar permisos: solo el creador o EDUARDO CANALS pueden eliminar
-    const isAdmin = currentUser.toUpperCase() === 'EDUARDO CANALS';
-    const isOwner = bocadillo.nombre === currentUser.toUpperCase();
+    // Verificar permisos: solo el creador o un admin pueden eliminar
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = bocadillo.userId?.toString() === user.userId;
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({
