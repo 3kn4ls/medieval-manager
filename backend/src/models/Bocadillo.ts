@@ -13,10 +13,14 @@ export enum TipoPan {
 
 export interface IBocadillo extends Document {
   nombre: string;
+  userId: mongoose.Types.ObjectId;
   tamano: TamanoBocadillo;
   tipoPan: TipoPan;
   ingredientes: string[];
   bocataPredefinido?: string;
+  esAlquimista: boolean;
+  precio?: number;
+  pagado: boolean;
   semana: number; // Número de semana del año
   ano: number;
   fechaCreacion: Date;
@@ -28,6 +32,11 @@ const BocadilloSchema: Schema = new Schema({
     required: true,
     uppercase: true,
     trim: true,
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   tamano: {
     type: String,
@@ -53,6 +62,19 @@ const BocadilloSchema: Schema = new Schema({
     type: String,
     required: false,
   },
+  esAlquimista: {
+    type: Boolean,
+    default: false,
+  },
+  precio: {
+    type: Number,
+    required: false,
+    min: 0,
+  },
+  pagado: {
+    type: Boolean,
+    default: false,
+  },
   semana: {
     type: Number,
     required: true,
@@ -67,7 +89,8 @@ const BocadilloSchema: Schema = new Schema({
   },
 });
 
-// Índice para búsquedas eficientes por semana
+// Índice para búsquedas eficientes por semana y usuario
 BocadilloSchema.index({ semana: 1, ano: 1 });
+BocadilloSchema.index({ userId: 1 });
 
 export default mongoose.model<IBocadillo>('Bocadillo', BocadilloSchema);

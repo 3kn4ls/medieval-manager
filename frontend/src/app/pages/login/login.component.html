@@ -1,0 +1,110 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>🥪 Medieval Manager</h1>
+      <p class="subtitle">Gestión de pedidos de bocadillos</p>
+    </div>
+
+    <!-- Login Form -->
+    <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+      <h2>Iniciar Sesión</h2>
+
+      <div class="form-group">
+        <label for="login-username">Usuario</label>
+        <input
+          type="text"
+          id="login-username"
+          formControlName="username"
+          class="form-control"
+          placeholder="Ingresa tu usuario"
+          [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <input
+          type="password"
+          id="login-password"
+          formControlName="password"
+          class="form-control"
+          placeholder="Ingresa tu contraseña"
+          [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+        />
+      </div>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="isSubmitting || loginForm.invalid">
+        {{ isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+      </button>
+
+      <p class="toggle-mode">
+        ¿No tienes cuenta?
+        <a href="javascript:void(0)" (click)="toggleMode()">Regístrate aquí</a>
+      </p>
+    </form>
+
+    <!-- Register Form -->
+    <form *ngIf="!isLoginMode" [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
+      <h2>Registro</h2>
+
+      <div class="form-group">
+        <label for="register-username">Usuario</label>
+        <input
+          type="text"
+          id="register-username"
+          formControlName="username"
+          class="form-control"
+          placeholder="Elige un usuario (mínimo 3 caracteres)"
+          [class.error]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+        />
+        <small class="form-help" *ngIf="registerForm.get('username')?.errors?.['minlength']">
+          El usuario debe tener al menos 3 caracteres
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="register-nombre">Nombre Completo</label>
+        <input
+          type="text"
+          id="register-nombre"
+          formControlName="nombre"
+          class="form-control"
+          placeholder="Tu nombre completo"
+          [class.error]="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="register-password">Contraseña</label>
+        <input
+          type="password"
+          id="register-password"
+          formControlName="password"
+          class="form-control"
+          placeholder="Elige una contraseña (mínimo 6 caracteres)"
+          [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        />
+        <small class="form-help" *ngIf="registerForm.get('password')?.errors?.['minlength']">
+          La contraseña debe tener al menos 6 caracteres
+        </small>
+      </div>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="isSubmitting || registerForm.invalid">
+        {{ isSubmitting ? 'Registrando...' : 'Registrarse' }}
+      </button>
+
+      <p class="toggle-mode">
+        ¿Ya tienes cuenta?
+        <a href="javascript:void(0)" (click)="toggleMode()">Inicia sesión aquí</a>
+      </p>
+    </form>
+  </div>
+</div>

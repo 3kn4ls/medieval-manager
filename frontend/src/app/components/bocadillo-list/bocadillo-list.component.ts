@@ -1,19 +1,20 @@
 import { Component, OnInit, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
-import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import { Bocadillo } from '../../models/bocadillo.model';
 
 @Component({
   selector: 'app-bocadillo-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './bocadillo-list.component.html',
   styleUrl: './bocadillo-list.component.css',
 })
 export class BocadilloListComponent implements OnInit {
   private bocadilloService = inject(BocadilloService);
-  private userService = inject(UserService);
+  private authService = inject(AuthService);
 
   refresh = input<number>(0);
   editRequested = output<Bocadillo>();
@@ -23,10 +24,12 @@ export class BocadilloListComponent implements OnInit {
   errorMessage = '';
   canDelete = false;
   currentUserName = '';
+  isAdmin = false;
 
   ngOnInit() {
-    const currentUser = this.userService.getCurrentUser();
-    this.currentUserName = currentUser?.nombre.toUpperCase() || '';
+    const currentUser = this.authService.getCurrentUser();
+    this.currentUserName = currentUser?.nombre || '';
+    this.isAdmin = this.authService.isAdmin();
     this.loadBocadillos();
     this.checkOrderWindow();
   }
@@ -70,9 +73,8 @@ export class BocadilloListComponent implements OnInit {
     if (!this.canDelete) {
       return false;
     }
-    const isAdmin = this.currentUserName === 'EDUARDO CANALS';
     const isOwner = bocadillo.nombre === this.currentUserName;
-    return isAdmin || isOwner;
+    return this.isAdmin || isOwner;
   }
 
   editBocadillo(bocadillo: Bocadillo) {
@@ -109,5 +111,54 @@ export class BocadilloListComponent implements OnInit {
       semillas: 'Semillas',
     };
     return labels[tipoPan] || tipoPan;
+  }
+
+  updatePrecio(bocadillo: Bocadillo, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const precio = parseFloat(input.value);
+
+    if (isNaN(precio) || precio < 0) {
+      alert('Por favor, introduce un precio válido');
+      input.value = bocadillo.precio?.toString() || '';
+      return;
+    }
+
+    this.bocadilloService.updatePrecio(bocadillo._id!, precio).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          bocadillo.precio = response.data.precio;
+        }
+      },
+      error: (error) => {
+        const errorMsg = error.error?.error || 'Error al actualizar el precio';
+        alert(errorMsg);
+        input.value = bocadillo.precio?.toString() || '';
+        console.error(error);
+      },
+    });
+  }
+
+  togglePagado(bocadillo: Bocadillo, event: Event) {
+    const checkbox = event.target as HTMLInputElement;
+    const pagado = checkbox.checked;
+
+    this.bocadilloService.markAsPagado(bocadillo._id!, pagado).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          bocadillo.pagado = response.data.pagado;
+        }
+      },
+      error: (error) => {
+        const errorMsg = error.error?.error || 'Error al actualizar el estado de pago';
+        alert(errorMsg);
+        checkbox.checked = !pagado;
+        console.error(error);
+      },
+    });
+  }
+
+  formatCurrency(value?: number): string {
+    if (value === undefined) return '-';
+    return value.toFixed(2) + '€';
   }
 }

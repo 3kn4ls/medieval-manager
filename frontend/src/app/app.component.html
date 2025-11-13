@@ -28,6 +28,32 @@
       <span class="icon">📊</span>
       <span class="label">Resumen</span>
     </a>
+    <a
+      routerLink="/payments"
+      class="nav-tab"
+      [class.active]="isActive('/payments')"
+    >
+      <span class="icon">💰</span>
+      <span class="label">Pagos</span>
+    </a>
+    <a
+      *ngIf="isAdmin"
+      routerLink="/admin"
+      class="nav-tab"
+      [class.active]="isActive('/admin')"
+    >
+      <span class="icon">🧙‍♂️</span>
+      <span class="label">Admin</span>
+    </a>
+    <a
+      *ngIf="isAdmin"
+      routerLink="/users"
+      class="nav-tab"
+      [class.active]="isActive('/users')"
+    >
+      <span class="icon">👥</span>
+      <span class="label">Usuarios</span>
+    </a>
   </nav>
 
   <!-- Router Outlet for Views -->

@@ -4,11 +4,12 @@ import {
   getBocatasPredefinidos,
   getOrderWindowStatus,
 } from '../controllers/menuController';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/ingredientes', getIngredientes);
-router.get('/bocatas-predefinidos', getBocatasPredefinidos);
-router.get('/order-window', getOrderWindowStatus);
+router.get('/ingredientes', authenticateToken, getIngredientes);
+router.get('/bocatas-predefinidos', authenticateToken, getBocatasPredefinidos);
+router.get('/order-window', authenticateToken, getOrderWindowStatus);
 
 export default router;

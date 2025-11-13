@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Bocadillo,
@@ -8,22 +8,13 @@ import {
   ApiResponse,
 } from '../models/bocadillo.model';
 import { environment } from '../../environments/environment';
-import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BocadilloService {
   private http = inject(HttpClient);
-  private userService = inject(UserService);
   private apiUrl = environment.apiUrl;
-
-  private getHeaders(): HttpHeaders {
-    const currentUser = this.userService.getCurrentUser();
-    return new HttpHeaders({
-      'X-User-Name': currentUser?.nombre || '',
-    });
-  }
 
   // Bocadillos
   getBocadillosSemanaActual(): Observable<ApiResponse<Bocadillo[]>> {
@@ -37,15 +28,27 @@ export class BocadilloService {
   updateBocadillo(id: string, bocadillo: Bocadillo): Observable<ApiResponse<Bocadillo>> {
     return this.http.put<ApiResponse<Bocadillo>>(
       `${this.apiUrl}/bocadillos/${id}`,
-      bocadillo,
-      { headers: this.getHeaders() }
+      bocadillo
     );
   }
 
   deleteBocadillo(id: string): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(
-      `${this.apiUrl}/bocadillos/${id}`,
-      { headers: this.getHeaders() }
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/bocadillos/${id}`);
+  }
+
+  // Admin: Actualizar precio
+  updatePrecio(id: string, precio: number): Observable<ApiResponse<Bocadillo>> {
+    return this.http.patch<ApiResponse<Bocadillo>>(
+      `${this.apiUrl}/bocadillos/${id}/precio`,
+      { precio }
+    );
+  }
+
+  // Admin: Marcar como pagado
+  markAsPagado(id: string, pagado: boolean): Observable<ApiResponse<Bocadillo>> {
+    return this.http.patch<ApiResponse<Bocadillo>>(
+      `${this.apiUrl}/bocadillos/${id}/pagado`,
+      { pagado }
     );
   }
 

@@ -65,6 +65,49 @@
         </div>
       </div>
 
+      <!-- Precio y Pago (Admin) -->
+      <div class="payment-section" *ngIf="isAdmin">
+        <div class="payment-row">
+          <label class="payment-label">Precio:</label>
+          <input
+            type="number"
+            class="price-input"
+            [value]="bocadillo.precio || ''"
+            (blur)="updatePrecio(bocadillo, $event)"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+          <span class="currency">€</span>
+        </div>
+        <div class="payment-row">
+          <label class="payment-label">
+            <input
+              type="checkbox"
+              class="payment-checkbox"
+              [checked]="bocadillo.pagado"
+              [disabled]="!bocadillo.precio"
+              (change)="togglePagado(bocadillo, $event)"
+            />
+            Pagado
+          </label>
+        </div>
+      </div>
+
+      <!-- Precio y Estado (Usuarios normales) -->
+      <div class="payment-info" *ngIf="!isAdmin && bocadillo.precio">
+        <div class="info-row">
+          <span class="info-label">Precio:</span>
+          <span class="info-value">{{ formatCurrency(bocadillo.precio) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Estado:</span>
+          <span class="info-value" [class.paid]="bocadillo.pagado" [class.unpaid]="!bocadillo.pagado">
+            {{ bocadillo.pagado ? '✓ Pagado' : '✗ Pendiente' }}
+          </span>
+        </div>
+      </div>
+
       <div class="bocadillo-footer">
         <span class="fecha">
           {{ bocadillo.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}

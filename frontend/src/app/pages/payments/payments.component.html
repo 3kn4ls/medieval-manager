@@ -1,0 +1,60 @@
+<div class="card">
+  <h2>💰 Estado de Pagos</h2>
+  <p class="subtitle">Seguimiento de pagos de la semana actual</p>
+
+  <div class="loading" *ngIf="isLoading">Cargando pagos...</div>
+
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage">
+    <!-- Resumen -->
+    <div class="summary-cards">
+      <div class="summary-card total">
+        <div class="summary-label">Total</div>
+        <div class="summary-value">{{ formatCurrency(summary.total) }}</div>
+        <div class="summary-count">{{ payments.length }} bocadillos</div>
+      </div>
+      <div class="summary-card pagado">
+        <div class="summary-label">Pagado</div>
+        <div class="summary-value">{{ formatCurrency(summary.pagado) }}</div>
+        <div class="summary-count">{{ summary.countPagados }} personas</div>
+      </div>
+      <div class="summary-card pendiente">
+        <div class="summary-label">Pendiente</div>
+        <div class="summary-value">{{ formatCurrency(summary.pendiente) }}</div>
+        <div class="summary-count">{{ summary.countPendientes }} personas</div>
+      </div>
+    </div>
+
+    <!-- Tabla de pagos -->
+    <div class="table-responsive">
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Bocadillo</th>
+            <th>Precio</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let payment of payments" [class.paid]="payment.pagado" [class.unpaid]="!payment.pagado">
+            <td class="name-cell">{{ payment.nombre }}</td>
+            <td class="bocadillo-cell">{{ payment.bocadillo }}</td>
+            <td class="price-cell">{{ formatCurrency(payment.precio || 0) }}</td>
+            <td class="status-cell">
+              <span class="status-badge" [class.badge-paid]="payment.pagado" [class.badge-unpaid]="!payment.pagado">
+                {{ payment.pagado ? '✓ Pagado' : '✗ Pendiente' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-state" *ngIf="payments.length === 0">
+        No hay bocadillos con precio asignado esta semana
+      </div>
+    </div>
+  </div>
+</div>
