@@ -13,7 +13,7 @@ export enum TipoPan {
 
 export interface IBocadillo extends Document {
   nombre: string;
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
   tamano: TamanoBocadillo;
   tipoPan: TipoPan;
   ingredientes: string[];
@@ -36,7 +36,7 @@ const BocadilloSchema: Schema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
   },
   tamano: {
     type: String,
