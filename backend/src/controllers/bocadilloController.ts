@@ -202,3 +202,81 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Actualizar precio de un bocadillo (solo admin)
+export const updatePrecio = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { precio } = req.body;
+
+    if (precio === undefined || precio < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Precio inválido',
+      });
+    }
+
+    const bocadillo = await Bocadillo.findById(id);
+
+    if (!bocadillo) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bocadillo no encontrado',
+      });
+    }
+
+    bocadillo.precio = precio;
+    await bocadillo.save();
+
+    res.json({
+      success: true,
+      data: bocadillo,
+      message: 'Precio actualizado correctamente',
+    });
+  } catch (error) {
+    console.error('Error updating precio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el precio',
+    });
+  }
+};
+
+// Marcar bocadillo como pagado (solo admin)
+export const markAsPagado = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { pagado } = req.body;
+
+    const bocadillo = await Bocadillo.findById(id);
+
+    if (!bocadillo) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bocadillo no encontrado',
+      });
+    }
+
+    if (!bocadillo.precio) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se puede marcar como pagado sin precio',
+      });
+    }
+
+    bocadillo.pagado = pagado;
+    await bocadillo.save();
+
+    res.json({
+      success: true,
+      data: bocadillo,
+      message: pagado ? 'Marcado como pagado' : 'Marcado como no pagado',
+    });
+  } catch (error) {
+    console.error('Error updating pagado status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el estado de pago',
+    });
+  }
+};

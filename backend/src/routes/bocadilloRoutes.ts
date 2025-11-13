@@ -4,9 +4,11 @@ import {
   getBocadillosSemanaActual,
   updateBocadillo,
   deleteBocadillo,
+  updatePrecio,
+  markAsPagado,
 } from '../controllers/bocadilloController';
 import { checkOrderWindow } from '../middleware/orderWindow';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -21,5 +23,11 @@ router.put('/:id', authenticateToken, checkOrderWindow, updateBocadillo);
 
 // Eliminar bocadillo (requiere autenticación y ventana abierta)
 router.delete('/:id', authenticateToken, checkOrderWindow, deleteBocadillo);
+
+// Admin: Actualizar precio de bocadillo
+router.patch('/:id/precio', authenticateToken, requireAdmin, updatePrecio);
+
+// Admin: Marcar bocadillo como pagado
+router.patch('/:id/pagado', authenticateToken, requireAdmin, markAsPagado);
 
 export default router;

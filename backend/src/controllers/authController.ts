@@ -170,3 +170,99 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Admin: Get all users
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.error('Error getting users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener los usuarios',
+    });
+  }
+};
+
+// Admin: Create new user
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const validatedData = registerSchema.parse(req.body);
+    const { role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ username: validatedData.username });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'El usuario ya existe',
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      ...validatedData,
+      role: role || UserRole.USER,
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        id: user._id,
+        username: user.username,
+        nombre: user.nombre,
+        role: user.role,
+      },
+      message: 'Usuario creado correctamente',
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validación fallida',
+        details: error.errors,
+      });
+    }
+
+    console.error('Error creating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al crear el usuario',
+    });
+  }
+};
+
+// Admin: Delete user
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado',
+      });
+    }
+
+    await User.deleteOne({ _id: id });
+
+    res.json({
+      success: true,
+      message: 'Usuario eliminado correctamente',
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al eliminar el usuario',
+    });
+  }
+};
