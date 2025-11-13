@@ -122,6 +122,11 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/users`, data);
   }
 
+  // Admin: Update user
+  updateUser(userId: string, data: Partial<CreateUserRequest>): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.apiUrl}/auth/users/${userId}`, data);
+  }
+
   // Admin: Delete user
   deleteUser(userId: string): Observable<AuthResponse> {
     return this.http.delete<AuthResponse>(`${this.apiUrl}/auth/users/${userId}`);
