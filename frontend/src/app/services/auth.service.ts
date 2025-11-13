@@ -7,6 +7,8 @@ import {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  CreateUserRequest,
+  UsersResponse,
   UserRole,
 } from '../models/user.model';
 import { environment } from '../../environments/environment';
@@ -108,5 +110,20 @@ export class AuthService {
         }
       })
     );
+  }
+
+  // Admin: Get all users
+  getAllUsers(): Observable<UsersResponse> {
+    return this.http.get<UsersResponse>(`${this.apiUrl}/auth/users`);
+  }
+
+  // Admin: Create new user
+  createUser(data: CreateUserRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/users`, data);
+  }
+
+  // Admin: Delete user
+  deleteUser(userId: string): Observable<AuthResponse> {
+    return this.http.delete<AuthResponse>(`${this.apiUrl}/auth/users/${userId}`);
   }
 }

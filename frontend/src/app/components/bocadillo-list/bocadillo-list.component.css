@@ -123,6 +123,95 @@ h2 {
   opacity: 0.8;
 }
 
+/* Payment Section Styles */
+.payment-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.payment-label {
+  font-weight: 600;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.price-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.price-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.currency {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.payment-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.payment-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Payment Info for Regular Users */
+.payment-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.info-label {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.info-value {
+  font-weight: 600;
+}
+
+.info-value.paid {
+  color: #2ecc71;
+}
+
+.info-value.unpaid {
+  color: #e74c3c;
+}
+
 @media (max-width: 768px) {
   .bocadillos-grid {
     grid-template-columns: 1fr;

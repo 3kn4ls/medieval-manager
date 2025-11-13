@@ -26,6 +26,18 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: 'users',
+    loadComponent: () =>
+      import('./pages/users/users.component').then((m) => m.UsersComponent),
+    canActivate: [authGuard, adminGuard],
+  },
+  {
+    path: 'payments',
+    loadComponent: () =>
+      import('./pages/payments/payments.component').then((m) => m.PaymentsComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: '/orders',
     pathMatch: 'full',

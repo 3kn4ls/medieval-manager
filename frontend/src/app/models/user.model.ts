@@ -8,6 +8,7 @@ export interface User {
   username: string;
   nombre: string;
   role: UserRole;
+  createdAt?: Date;
 }
 
 export interface AuthResponse {
@@ -29,4 +30,14 @@ export interface RegisterRequest {
   username: string;
   password: string;
   nombre: string;
+}
+
+export interface CreateUserRequest extends RegisterRequest {
+  role?: UserRole;
+}
+
+export interface UsersResponse {
+  success: boolean;
+  data?: User[];
+  error?: string;
 }
