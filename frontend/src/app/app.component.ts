@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { UserService } from './services/user.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -11,23 +11,24 @@ import { UserService } from './services/user.service';
   styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit {
-  private userService = inject(UserService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   showNav = false;
   currentUser: string = '';
+  isAdmin = false;
 
   ngOnInit() {
-    this.userService.user$.subscribe((user) => {
+    this.authService.currentUser$.subscribe((user) => {
       this.showNav = user !== null;
       this.currentUser = user?.nombre || '';
+      this.isAdmin = this.authService.isAdmin();
     });
   }
 
-  async logout() {
+  logout() {
     if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      await this.userService.clearUser();
-      this.router.navigate(['/register']);
+      this.authService.logout();
     }
   }
 

@@ -1,0 +1,120 @@
+<div class="card">
+  <h2>👥 Gestión de Usuarios</h2>
+  <p class="subtitle">Crear y administrar usuarios del sistema</p>
+
+  <div class="loading" *ngIf="isLoading">Cargando usuarios...</div>
+
+  <!-- Formulario de creación -->
+  <div class="form-section">
+    <h3>Crear Nuevo Usuario</h3>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username">Usuario *</label>
+          <input
+            type="text"
+            id="username"
+            class="form-control"
+            formControlName="username"
+            placeholder="Ej: jperez"
+          />
+          <div class="error-message" *ngIf="form.get('username')?.invalid && form.get('username')?.touched">
+            Usuario requerido (mínimo 3 caracteres)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña *</label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+          />
+          <div class="error-message" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+            Contraseña requerida (mínimo 6 caracteres)
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre Completo *</label>
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            formControlName="nombre"
+            placeholder="Ej: Juan Pérez"
+          />
+          <div class="error-message" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+            Nombre requerido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="role">Rol *</label>
+          <select id="role" class="form-control" formControlName="role">
+            <option [value]="UserRole.USER">👤 Usuario</option>
+            <option [value]="UserRole.ADMIN">🧙‍♂️ Administrador</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || form.invalid">
+        {{ isSubmitting ? 'Creando...' : 'Crear Usuario' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Lista de usuarios -->
+  <div class="users-list" *ngIf="!isLoading">
+    <h3>Usuarios Existentes</h3>
+    <div class="table-responsive">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th>Fecha Creación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.username }}</td>
+            <td>{{ user.nombre }}</td>
+            <td>
+              <span class="badge" [class.badge-admin]="user.role === UserRole.ADMIN">
+                {{ getRoleLabel(user.role) }}
+              </span>
+            </td>
+            <td>{{ user.createdAt | date: 'dd/MM/yyyy' }}</td>
+            <td>
+              <button
+                class="btn btn-danger btn-sm"
+                (click)="deleteUser(user.id, user.username)"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-state" *ngIf="users.length === 0">
+        No hay usuarios registrados
+      </div>
+    </div>
+  </div>
+</div>

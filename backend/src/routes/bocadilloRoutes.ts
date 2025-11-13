@@ -4,21 +4,30 @@ import {
   getBocadillosSemanaActual,
   updateBocadillo,
   deleteBocadillo,
+  updatePrecio,
+  markAsPagado,
 } from '../controllers/bocadilloController';
 import { checkOrderWindow } from '../middleware/orderWindow';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
-// Obtener bocadillos de la semana actual (siempre disponible)
-router.get('/', getBocadillosSemanaActual);
+// Obtener bocadillos de la semana actual (requiere autenticación)
+router.get('/', authenticateToken, getBocadillosSemanaActual);
 
-// Crear bocadillo (solo dentro de la ventana de pedidos)
-router.post('/', checkOrderWindow, createBocadillo);
+// Crear bocadillo (requiere autenticación y ventana abierta)
+router.post('/', authenticateToken, checkOrderWindow, createBocadillo);
 
-// Actualizar bocadillo (solo dentro de la ventana de pedidos)
-router.put('/:id', checkOrderWindow, updateBocadillo);
+// Actualizar bocadillo (requiere autenticación y ventana abierta)
+router.put('/:id', authenticateToken, checkOrderWindow, updateBocadillo);
 
-// Eliminar bocadillo (solo dentro de la ventana de pedidos)
-router.delete('/:id', checkOrderWindow, deleteBocadillo);
+// Eliminar bocadillo (requiere autenticación y ventana abierta)
+router.delete('/:id', authenticateToken, checkOrderWindow, deleteBocadillo);
+
+// Admin: Actualizar precio de bocadillo
+router.patch('/:id/precio', authenticateToken, requireAdmin, updatePrecio);
+
+// Admin: Marcar bocadillo como pagado
+router.patch('/:id/pagado', authenticateToken, requireAdmin, markAsPagado);
 
 export default router;

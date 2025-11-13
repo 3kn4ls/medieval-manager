@@ -3,18 +3,31 @@ import Bocadillo from '../models/Bocadillo';
 import { createBocadilloSchema } from '../validators/bocadilloValidator';
 import { getWeekNumber } from '../utils/dateUtils';
 import { ZodError } from 'zod';
+import { AuthRequest } from '../middleware/auth';
+import { UserRole } from '../models/User';
 
 export const createBocadillo = async (req: Request, res: Response) => {
   try {
+    const user = (req as AuthRequest).user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+    }
+
     // Validar datos de entrada
     const validatedData = createBocadilloSchema.parse(req.body);
 
     // Obtener semana actual
     const { week, year } = getWeekNumber(new Date());
 
-    // Crear bocadillo
+    // Crear bocadillo con el userId y nombre del usuario autenticado
     const bocadillo = new Bocadillo({
       ...validatedData,
+      nombre: user.nombre,
+      userId: user.userId,
       semana: week,
       ano: year,
     });
@@ -70,12 +83,12 @@ export const updateBocadillo = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { week, year } = getWeekNumber(new Date());
-    const currentUser = req.headers['x-user-name'] as string;
+    const user = (req as AuthRequest).user;
 
-    if (!currentUser) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Usuario no identificado',
+        error: 'Usuario no autenticado',
       });
     }
 
@@ -93,9 +106,9 @@ export const updateBocadillo = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar permisos: solo el creador o EDUARDO CANALS pueden editar
-    const isAdmin = currentUser.toUpperCase() === 'EDUARDO CANALS';
-    const isOwner = bocadillo.nombre === currentUser.toUpperCase();
+    // Verificar permisos: solo el creador o un admin pueden editar
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = bocadillo.userId?.toString() === user.userId;
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({
@@ -141,12 +154,12 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { week, year } = getWeekNumber(new Date());
-    const currentUser = req.headers['x-user-name'] as string;
+    const user = (req as AuthRequest).user;
 
-    if (!currentUser) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Usuario no identificado',
+        error: 'Usuario no autenticado',
       });
     }
 
@@ -164,9 +177,9 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar permisos: solo el creador o EDUARDO CANALS pueden eliminar
-    const isAdmin = currentUser.toUpperCase() === 'EDUARDO CANALS';
-    const isOwner = bocadillo.nombre === currentUser.toUpperCase();
+    // Verificar permisos: solo el creador o un admin pueden eliminar
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = bocadillo.userId?.toString() === user.userId;
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({
@@ -186,6 +199,84 @@ export const deleteBocadillo = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Error al eliminar el bocadillo',
+    });
+  }
+};
+
+// Actualizar precio de un bocadillo (solo admin)
+export const updatePrecio = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { precio } = req.body;
+
+    if (precio === undefined || precio < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Precio inválido',
+      });
+    }
+
+    const bocadillo = await Bocadillo.findById(id);
+
+    if (!bocadillo) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bocadillo no encontrado',
+      });
+    }
+
+    bocadillo.precio = precio;
+    await bocadillo.save();
+
+    res.json({
+      success: true,
+      data: bocadillo,
+      message: 'Precio actualizado correctamente',
+    });
+  } catch (error) {
+    console.error('Error updating precio:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el precio',
+    });
+  }
+};
+
+// Marcar bocadillo como pagado (solo admin)
+export const markAsPagado = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { pagado } = req.body;
+
+    const bocadillo = await Bocadillo.findById(id);
+
+    if (!bocadillo) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bocadillo no encontrado',
+      });
+    }
+
+    if (!bocadillo.precio) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se puede marcar como pagado sin precio',
+      });
+    }
+
+    bocadillo.pagado = pagado;
+    await bocadillo.save();
+
+    res.json({
+      success: true,
+      data: bocadillo,
+      message: pagado ? 'Marcado como pagado' : 'Marcado como no pagado',
+    });
+  } catch (error) {
+    console.error('Error updating pagado status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el estado de pago',
     });
   }
 };

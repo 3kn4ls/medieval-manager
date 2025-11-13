@@ -1,0 +1,138 @@
+<div class="card">
+  <h2>🧙‍♂️ Gestión del Bocadillo Alquimista</h2>
+  <p class="subtitle">Define el bocadillo sorpresa de esta semana</p>
+
+  <div class="loading" *ngIf="isLoading">Cargando...</div>
+
+  <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Tamaño -->
+    <div class="form-group">
+      <label>Tamaño *</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" formControlName="tamano" [value]="TamanoBocadillo.NORMAL" />
+          Normal
+        </label>
+        <label class="radio-label">
+          <input type="radio" formControlName="tamano" [value]="TamanoBocadillo.GRANDE" />
+          Grande
+        </label>
+      </div>
+    </div>
+
+    <!-- Tipo de Pan -->
+    <div class="form-group">
+      <label>Tipo de Pan *</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" formControlName="tipoPan" [value]="TipoPan.NORMAL" />
+          Normal
+        </label>
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tipoPan"
+            [value]="TipoPan.INTEGRAL"
+            [disabled]="isPanDisabled(TipoPan.INTEGRAL)"
+          />
+          Integral (solo normal)
+        </label>
+        <label class="radio-label">
+          <input
+            type="radio"
+            formControlName="tipoPan"
+            [value]="TipoPan.SEMILLAS"
+            [disabled]="isPanDisabled(TipoPan.SEMILLAS)"
+          />
+          Semillas (solo normal)
+        </label>
+      </div>
+    </div>
+
+    <!-- Ingredientes con Autocompletado -->
+    <div class="form-group">
+      <label for="ingredientes">Ingredientes Secretos *</label>
+      <div class="autocomplete-container">
+        <input
+          type="text"
+          id="ingredientes"
+          class="form-control"
+          [value]="ingredienteInput"
+          (input)="onIngredienteInputChange($event)"
+          placeholder="Buscar ingredientes..."
+        />
+
+        <!-- Lista de sugerencias -->
+        <ul class="suggestions" *ngIf="showIngredientesSuggestions">
+          <li
+            *ngFor="let ingrediente of ingredientesFiltrados"
+            (click)="agregarIngrediente(ingrediente)"
+          >
+            {{ ingrediente }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Ingredientes seleccionados -->
+      <div class="selected-items" *ngIf="ingredientesSeleccionados.length > 0">
+        <span *ngFor="let ingrediente of ingredientesSeleccionados" class="chip">
+          {{ ingrediente }}
+          <button
+            type="button"
+            class="chip-remove"
+            (click)="quitarIngrediente(ingrediente)"
+          >
+            ×
+          </button>
+        </span>
+      </div>
+
+      <div class="error-message" *ngIf="ingredientesSeleccionados.length === 0 && errorMessage">
+        Debes seleccionar al menos un ingrediente
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+
+    <!-- Botones -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Guardando...' : (alquimistaExistente ? 'Actualizar Alquimista' : 'Crear Alquimista') }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="resetForm()"
+        [disabled]="isSubmitting"
+      >
+        Limpiar
+      </button>
+      <button
+        *ngIf="alquimistaExistente"
+        type="button"
+        class="btn btn-danger"
+        (click)="deleteAlquimista()"
+        [disabled]="isSubmitting"
+      >
+        Eliminar Alquimista
+      </button>
+    </div>
+  </form>
+
+  <div class="info-box">
+    <h3>ℹ️ Información</h3>
+    <ul>
+      <li>El bocadillo Alquimista es una opción sorpresa para los usuarios</li>
+      <li>Los usuarios pueden seleccionarlo pero no verán los ingredientes</li>
+      <li>Solo tú como administrador puedes ver y editar los ingredientes</li>
+      <li>Los ingredientes se revelarán en el export a WhatsApp</li>
+    </ul>
+  </div>
+</div>
