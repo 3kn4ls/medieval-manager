@@ -2,11 +2,29 @@
   <h2>👥 Gestión de Usuarios</h2>
   <p class="subtitle">Crear y administrar usuarios del sistema</p>
 
+  <!-- Toggle de registro público -->
+  <div class="settings-section">
+    <div class="setting-row">
+      <div class="setting-info">
+        <h4>Registro Público</h4>
+        <p>Permitir que nuevos usuarios se registren desde la página de login</p>
+      </div>
+      <label class="toggle-switch">
+        <input
+          type="checkbox"
+          [(ngModel)]="publicRegistrationEnabled"
+          (change)="togglePublicRegistration()"
+        />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
   <div class="loading" *ngIf="isLoading">Cargando usuarios...</div>
 
-  <!-- Formulario de creación -->
+  <!-- Formulario de creación/edición -->
   <div class="form-section">
-    <h3>Crear Nuevo Usuario</h3>
+    <h3>{{ editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}</h3>
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-row">
         <div class="form-group">
@@ -24,13 +42,13 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Contraseña *</label>
+          <label for="password">Contraseña {{ editingUserId ? '' : '*' }}</label>
           <input
             type="password"
             id="password"
             class="form-control"
             formControlName="password"
-            placeholder="Mínimo 6 caracteres"
+            [placeholder]="editingUserId ? 'Dejar en blanco para no cambiar' : 'Mínimo 6 caracteres'"
           />
           <div class="error-message" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
             Contraseña requerida (mínimo 6 caracteres)
@@ -71,9 +89,20 @@
         {{ successMessage }}
       </div>
 
-      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || form.invalid">
-        {{ isSubmitting ? 'Creando...' : 'Crear Usuario' }}
-      </button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || form.invalid">
+          {{ isSubmitting ? (editingUserId ? 'Actualizando...' : 'Creando...') : (editingUserId ? 'Actualizar Usuario' : 'Crear Usuario') }}
+        </button>
+        <button
+          *ngIf="editingUserId"
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelEdit()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+      </div>
     </form>
   </div>
 
@@ -102,12 +131,20 @@
             </td>
             <td>{{ user.createdAt | date: 'dd/MM/yyyy' }}</td>
             <td>
-              <button
-                class="btn btn-danger btn-sm"
-                (click)="deleteUser(user.id, user.username)"
-              >
-                Eliminar
-              </button>
+              <div class="action-buttons">
+                <button
+                  class="btn btn-edit btn-sm"
+                  (click)="editUser(user)"
+                >
+                  Editar
+                </button>
+                <button
+                  class="btn btn-danger btn-sm"
+                  (click)="deleteUser(user.id, user.username)"
+                >
+                  Eliminar
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

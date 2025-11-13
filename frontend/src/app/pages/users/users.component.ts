@@ -1,19 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService } from '../../services/settings.service';
 import { User, UserRole } from '../../models/user.model';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
 })
 export class UsersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
 
   form!: FormGroup;
   users: User[] = [];
@@ -21,12 +23,15 @@ export class UsersComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
   successMessage = '';
+  editingUserId: string | null = null;
+  publicRegistrationEnabled = false;
 
   readonly UserRole = UserRole;
 
   ngOnInit() {
     this.initForm();
     this.loadUsers();
+    this.loadSettings();
   }
 
   initForm() {
@@ -35,6 +40,19 @@ export class UsersComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       nombre: ['', Validators.required],
       role: [UserRole.USER, Validators.required],
+    });
+  }
+
+  loadSettings() {
+    this.settingsService.getSettings().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.publicRegistrationEnabled = response.data.publicRegistrationEnabled;
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando configuración:', error);
+      },
     });
   }
 
@@ -65,18 +83,89 @@ export class UsersComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.authService.createUser(this.form.value).subscribe({
+    if (this.editingUserId) {
+      // Modo edición
+      const updateData: any = {
+        username: this.form.value.username,
+        nombre: this.form.value.nombre,
+        role: this.form.value.role,
+      };
+
+      // Solo incluir password si se ha cambiado
+      if (this.form.value.password) {
+        updateData.password = this.form.value.password;
+      }
+
+      this.authService.updateUser(this.editingUserId, updateData).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.successMessage = 'Usuario actualizado correctamente';
+            this.cancelEdit();
+            this.loadUsers();
+          }
+          this.isSubmitting = false;
+        },
+        error: (error) => {
+          this.errorMessage = error.error?.error || 'Error al actualizar el usuario';
+          this.isSubmitting = false;
+        },
+      });
+    } else {
+      // Modo creación
+      this.authService.createUser(this.form.value).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.successMessage = 'Usuario creado correctamente';
+            this.form.reset({ role: UserRole.USER });
+            this.loadUsers();
+          }
+          this.isSubmitting = false;
+        },
+        error: (error) => {
+          this.errorMessage = error.error?.error || 'Error al crear el usuario';
+          this.isSubmitting = false;
+        },
+      });
+    }
+  }
+
+  editUser(user: User) {
+    this.editingUserId = user.id;
+    this.form.patchValue({
+      username: user.username,
+      nombre: user.nombre,
+      role: user.role,
+      password: '', // Dejar vacío para no cambiar
+    });
+
+    // Hacer que el password sea opcional en modo edición
+    this.form.get('password')?.clearValidators();
+    this.form.get('password')?.updateValueAndValidity();
+
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  cancelEdit() {
+    this.editingUserId = null;
+    this.form.reset({ role: UserRole.USER });
+
+    // Restaurar validación de password
+    this.form.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+    this.form.get('password')?.updateValueAndValidity();
+  }
+
+  togglePublicRegistration() {
+    this.settingsService.updateSettings({ publicRegistrationEnabled: this.publicRegistrationEnabled }).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = 'Usuario creado correctamente';
-          this.form.reset({ role: UserRole.USER });
-          this.loadUsers();
+          this.successMessage = `Registro público ${this.publicRegistrationEnabled ? 'activado' : 'desactivado'}`;
         }
-        this.isSubmitting = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.error || 'Error al crear el usuario';
-        this.isSubmitting = false;
+        this.errorMessage = error.error?.error || 'Error al actualizar la configuración';
+        // Revertir el cambio
+        this.publicRegistrationEnabled = !this.publicRegistrationEnabled;
       },
     });
   }
