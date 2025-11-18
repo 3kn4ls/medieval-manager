@@ -1,15 +1,32 @@
 import { Request, Response } from 'express';
-import { INGREDIENTES_DISPONIBLES, BOCATAS_PREDEFINIDOS } from '../config/menu';
+import { BOCATAS_PREDEFINIDOS } from '../config/menu';
 import { isWithinOrderWindow, getNextMonday, getThursdayDeadline, getWeekNumber } from '../utils/dateUtils';
 import BocadilloAlquimista from '../models/BocadilloAlquimista';
+import Ingrediente from '../models/Ingrediente';
 import { AuthRequest } from '../middleware/auth';
 import { UserRole } from '../models/User';
 
 export const getIngredientes = async (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    data: INGREDIENTES_DISPONIBLES,
-  });
+  try {
+    // Obtener ingredientes disponibles desde la base de datos
+    const ingredientes = await Ingrediente.find({ disponible: true })
+      .sort({ orden: 1, nombre: 1 })
+      .select('nombre');
+
+    // Extraer solo los nombres para mantener compatibilidad con el frontend
+    const nombresIngredientes = ingredientes.map(ing => ing.nombre);
+
+    res.json({
+      success: true,
+      data: nombresIngredientes,
+    });
+  } catch (error) {
+    console.error('Error al obtener ingredientes:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener ingredientes',
+    });
+  }
 };
 
 export const getBocatasPredefinidos = async (req: Request, res: Response) => {

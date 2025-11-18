@@ -1,8 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AlquimistaService } from '../../services/alquimista.service';
 import { BocadilloService } from '../../services/bocadillo.service';
+import { AuthService } from '../../services/auth.service';
 import { TamanoBocadillo, TipoPan } from '../../models/bocadillo.model';
 
 @Component({
@@ -16,6 +18,8 @@ export class AdminComponent implements OnInit {
   private fb = inject(FormBuilder);
   private alquimistaService = inject(AlquimistaService);
   private bocadilloService = inject(BocadilloService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   form!: FormGroup;
   ingredientesDisponibles: string[] = [];
@@ -201,5 +205,27 @@ export class AdminComponent implements OnInit {
       tamano === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     );
+  }
+
+  // Métodos de navegación
+  goToOrders(): void {
+    this.router.navigate(['/orders']);
+  }
+
+  goToIngredientes(): void {
+    this.router.navigate(['/ingredientes']);
+  }
+
+  goToUsers(): void {
+    this.router.navigate(['/users']);
+  }
+
+  goToPayments(): void {
+    this.router.navigate(['/payments']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

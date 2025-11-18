@@ -7,6 +7,7 @@ import menuRoutes from './routes/menuRoutes';
 import authRoutes from './routes/authRoutes';
 import alquimistaRoutes from './routes/alquimistaRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import ingredientesRoutes from './routes/ingredientesRoutes';
 import User, { UserRole } from './models/User';
 
 // Cargar variables de entorno
@@ -39,6 +40,7 @@ app.use('/api/bocadillos', bocadilloRoutes);
 app.use('/api/alquimista', alquimistaRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/ingredientes', ingredientesRoutes);
 
 // Ruta 404
 app.use((req, res) => {

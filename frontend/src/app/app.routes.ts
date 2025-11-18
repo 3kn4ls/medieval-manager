@@ -32,6 +32,12 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: 'ingredientes',
+    loadComponent: () =>
+      import('./pages/ingredientes/ingredientes.component').then((m) => m.IngredientesComponent),
+    canActivate: [authGuard, adminGuard],
+  },
+  {
     path: 'payments',
     loadComponent: () =>
       import('./pages/payments/payments.component').then((m) => m.PaymentsComponent),
