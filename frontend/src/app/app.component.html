@@ -54,6 +54,15 @@
       <span class="icon">👥</span>
       <span class="label">Usuarios</span>
     </a>
+    <a
+      *ngIf="isAdmin"
+      routerLink="/ingredientes"
+      class="nav-tab"
+      [class.active]="isActive('/ingredientes')"
+    >
+      <span class="icon">🥖</span>
+      <span class="label">Ingredientes</span>
+    </a>
   </nav>
 
   <!-- Router Outlet for Views -->

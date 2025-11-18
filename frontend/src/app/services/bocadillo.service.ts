@@ -54,7 +54,7 @@ export class BocadilloService {
 
   // Menú
   getIngredientes(): Observable<ApiResponse<string[]>> {
-    return this.http.get<ApiResponse<string[]>>(`${this.apiUrl}/menu/ingredientes`);
+    return this.http.get<ApiResponse<string[]>>(`${this.apiUrl}/ingredientes/disponibles`);
   }
 
   getBocatasPredefinidos(): Observable<ApiResponse<BocataPredefinido[]>> {
