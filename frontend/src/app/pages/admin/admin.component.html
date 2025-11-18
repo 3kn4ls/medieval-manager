@@ -1,3 +1,16 @@
+<div class="container">
+  <header class="header">
+    <h1>Panel de Administración</h1>
+    <nav class="nav">
+      <button (click)="goToOrders()" class="nav-btn">Pedidos</button>
+      <button class="nav-btn active">Alquimista</button>
+      <button (click)="goToIngredientes()" class="nav-btn">Ingredientes</button>
+      <button (click)="goToUsers()" class="nav-btn">Usuarios</button>
+      <button (click)="goToPayments()" class="nav-btn">Pagos</button>
+      <button (click)="logout()" class="logout-btn">Cerrar Sesión</button>
+    </nav>
+  </header>
+
 <div class="card">
   <h2>🧙‍♂️ Gestión del Bocadillo Alquimista</h2>
   <p class="subtitle">Define el bocadillo sorpresa de esta semana</p>
@@ -135,4 +148,5 @@
       <li>Los ingredientes se revelarán en el export a WhatsApp</li>
     </ul>
   </div>
+</div>
 </div>

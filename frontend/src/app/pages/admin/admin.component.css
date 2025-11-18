@@ -1,3 +1,62 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+}
+
+.header h1 {
+  margin: 0 0 15px 0;
+  font-size: 2em;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-btn.active {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: white;
+  font-weight: bold;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background: #dc3545;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.logout-btn:hover {
+  background: #c82333;
+}
+
 .subtitle {
   color: #666;
   margin-bottom: 24px;

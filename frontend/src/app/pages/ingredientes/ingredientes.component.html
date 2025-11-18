@@ -1,0 +1,136 @@
+<div class="container">
+  <header class="header">
+    <h1>Gestión de Ingredientes</h1>
+    <nav class="nav">
+      <button (click)="goToOrders()" class="nav-btn">Pedidos</button>
+      <button (click)="goToAdmin()" class="nav-btn">Alquimista</button>
+      <button class="nav-btn active">Ingredientes</button>
+      <button (click)="goToUsers()" class="nav-btn">Usuarios</button>
+      <button (click)="goToPayments()" class="nav-btn">Pagos</button>
+      <button (click)="logout()" class="logout-btn">Cerrar Sesión</button>
+    </nav>
+  </header>
+
+  <!-- Mensajes de éxito y error -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+  </div>
+
+  <!-- Botón para mostrar/ocultar formulario -->
+  <div class="actions">
+    <button (click)="toggleForm()" class="btn btn-primary">
+      {{ showForm ? 'Cancelar' : '+ Nuevo Ingrediente' }}
+    </button>
+  </div>
+
+  <!-- Formulario de ingrediente -->
+  <div *ngIf="showForm" class="form-container">
+    <h2>{{ editingIngrediente ? 'Editar Ingrediente' : 'Nuevo Ingrediente' }}</h2>
+    <form [formGroup]="ingredienteForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre del Ingrediente *</label>
+        <input
+          type="text"
+          id="nombre"
+          formControlName="nombre"
+          placeholder="Ej: Jamón Ibérico"
+          [class.error]="ingredienteForm.get('nombre')?.invalid && ingredienteForm.get('nombre')?.touched"
+        />
+        <div *ngIf="ingredienteForm.get('nombre')?.invalid && ingredienteForm.get('nombre')?.touched" class="error-message">
+          El nombre es requerido (máximo 100 caracteres)
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="categoria">Categoría</label>
+        <input
+          type="text"
+          id="categoria"
+          formControlName="categoria"
+          placeholder="Ej: Embutidos"
+          list="categorias-list"
+        />
+        <datalist id="categorias-list">
+          <option *ngFor="let cat of categorias" [value]="cat">
+        </datalist>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="orden">Orden</label>
+          <input
+            type="number"
+            id="orden"
+            formControlName="orden"
+            min="0"
+          />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="disponible" />
+            Disponible
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success" [disabled]="ingredienteForm.invalid || isLoading">
+          {{ editingIngrediente ? 'Actualizar' : 'Crear' }} Ingrediente
+        </button>
+        <button type="button" (click)="cancelEdit()" class="btn btn-secondary">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de ingredientes -->
+  <div class="table-container">
+    <h2>Lista de Ingredientes ({{ ingredientes.length }})</h2>
+
+    <div *ngIf="isLoading" class="loading">
+      Cargando ingredientes...
+    </div>
+
+    <table *ngIf="!isLoading && ingredientes.length > 0" class="table">
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ingrediente of ingredientes">
+          <td>{{ ingrediente.orden }}</td>
+          <td>{{ ingrediente.nombre }}</td>
+          <td>{{ ingrediente.categoria || '-' }}</td>
+          <td>
+            <span [class]="ingrediente.disponible ? 'badge badge-success' : 'badge badge-warning'">
+              {{ ingrediente.disponible ? 'Disponible' : 'No disponible' }}
+            </span>
+          </td>
+          <td>
+            <button (click)="editIngrediente(ingrediente)" class="btn-action btn-edit" title="Editar">
+              ✏️
+            </button>
+            <button (click)="deleteIngrediente(ingrediente)" class="btn-action btn-delete" title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!isLoading && ingredientes.length === 0" class="empty-state">
+      No hay ingredientes registrados. Crea uno nuevo para comenzar.
+    </div>
+  </div>
+</div>
