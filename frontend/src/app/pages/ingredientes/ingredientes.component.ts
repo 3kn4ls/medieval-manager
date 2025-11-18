@@ -54,12 +54,28 @@ export class IngredientesComponent implements OnInit {
 
     this.ingredienteService.getIngredientes().subscribe({
       next: (ingredientes) => {
-        this.ingredientes = ingredientes;
+        this.ingredientes = ingredientes || [];
         this.isLoading = false;
+
+        // Si no hay ingredientes, mostrar un mensaje informativo
+        if (this.ingredientes.length === 0) {
+          console.log('No hay ingredientes en la base de datos. Usa el botón "+ Nuevo Ingrediente" para crear uno o ejecuta el script de migración.');
+        }
       },
       error: (error) => {
-        console.error('Error al cargar ingredientes:', error);
-        this.error = 'Error al cargar los ingredientes';
+        console.error('Error completo al cargar ingredientes:', error);
+
+        // Mensaje de error más específico
+        if (error.status === 0) {
+          this.error = 'No se puede conectar con el servidor. Verifica que el backend esté corriendo.';
+        } else if (error.status === 401 || error.status === 403) {
+          this.error = 'No tienes permisos para acceder a esta funcionalidad.';
+        } else if (error.status === 500) {
+          this.error = 'Error del servidor. Verifica que MongoDB esté corriendo.';
+        } else {
+          this.error = error.error?.message || 'Error al cargar los ingredientes. ' + (error.message || '');
+        }
+
         this.isLoading = false;
       }
     });

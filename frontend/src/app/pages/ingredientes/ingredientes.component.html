@@ -129,8 +129,16 @@
       </tbody>
     </table>
 
-    <div *ngIf="!isLoading && ingredientes.length === 0" class="empty-state">
-      No hay ingredientes registrados. Crea uno nuevo para comenzar.
+    <div *ngIf="!isLoading && ingredientes.length === 0 && !error" class="empty-state">
+      <h3>📝 No hay ingredientes registrados</h3>
+      <p>Puedes:</p>
+      <ul>
+        <li>Crear ingredientes manualmente usando el botón "+ Nuevo Ingrediente"</li>
+        <li>O ejecutar el script de migración desde el backend:</li>
+      </ul>
+      <pre class="code-block">cd backend
+npx tsx src/scripts/migrateIngredientes.ts</pre>
+      <p class="note">El script de migración poblará la base de datos con los ingredientes predefinidos.</p>
     </div>
   </div>
 </div>
