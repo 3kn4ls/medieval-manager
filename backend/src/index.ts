@@ -9,6 +9,8 @@ import alquimistaRoutes from './routes/alquimistaRoutes';
 import settingsRoutes from './routes/settingsRoutes';
 import ingredientesRoutes from './routes/ingredientesRoutes';
 import User, { UserRole } from './models/User';
+import Ingrediente from './models/Ingrediente';
+import { INGREDIENTES_DISPONIBLES } from './config/menu';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -84,6 +86,83 @@ const createInitialAdmin = async () => {
   }
 };
 
+// Función para categorizar ingredientes automáticamente
+const categorizarIngrediente = (nombre: string): string => {
+  const nombreLower = nombre.toLowerCase();
+
+  if (nombreLower.includes('pollo') || nombreLower.includes('costillas') ||
+      nombreLower.includes('carillada') || nombreLower.includes('chilindron') ||
+      nombreLower.includes('kebab')) {
+    return 'Carnes y Aves';
+  }
+  if (nombreLower.includes('tortilla')) {
+    return 'Tortillas';
+  }
+  if (nombreLower.includes('jamón') || nombreLower.includes('longaniza') ||
+      nombreLower.includes('chorizo') || nombreLower.includes('morcilla') ||
+      nombreLower.includes('pavo') || nombreLower.includes('bacon')) {
+    return 'Embutidos';
+  }
+  if (nombreLower.includes('queso')) {
+    return 'Quesos';
+  }
+  if (nombreLower.includes('tomate') || nombreLower.includes('lechuga') ||
+      nombreLower.includes('cebolla') || nombreLower.includes('ensalada') ||
+      nombreLower.includes('olivas')) {
+    return 'Vegetales';
+  }
+  if (nombreLower.includes('atún') || nombreLower.includes('anchoas') ||
+      nombreLower.includes('mojama')) {
+    return 'Pescados';
+  }
+  if (nombreLower.includes('huevo')) {
+    return 'Huevos';
+  }
+  if (nombreLower.includes('mayonesa') || nombreLower.includes('mostaza') ||
+      nombreLower.includes('aceite')) {
+    return 'Condimentos';
+  }
+  if (nombreLower.includes('patata')) {
+    return 'Guarniciones';
+  }
+
+  return 'Otros';
+};
+
+// Función para inicializar ingredientes automáticamente
+const initializeIngredientes = async () => {
+  try {
+    const existingCount = await Ingrediente.countDocuments();
+
+    if (existingCount > 0) {
+      console.log(`ℹ️  Ya existen ${existingCount} ingredientes en la base de datos`);
+      return;
+    }
+
+    console.log('🔄 Inicializando ingredientes...');
+    let agregados = 0;
+
+    for (let i = 0; i < INGREDIENTES_DISPONIBLES.length; i++) {
+      const nombreIngrediente = INGREDIENTES_DISPONIBLES[i];
+
+      const ingrediente = new Ingrediente({
+        nombre: nombreIngrediente,
+        categoria: categorizarIngrediente(nombreIngrediente),
+        disponible: true,
+        orden: i,
+      });
+
+      await ingrediente.save();
+      agregados++;
+    }
+
+    console.log(`✅ ${agregados} ingredientes inicializados correctamente`);
+  } catch (error) {
+    console.error('⚠️  Error al inicializar ingredientes:', error);
+    // No detenemos el servidor si falla la inicialización
+  }
+};
+
 // Iniciar servidor
 const startServer = async () => {
   try {
@@ -91,6 +170,9 @@ const startServer = async () => {
 
     // Crear admin inicial automáticamente
     await createInitialAdmin();
+
+    // Inicializar ingredientes automáticamente
+    await initializeIngredientes();
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);

@@ -8,7 +8,7 @@ import { Ingrediente, CreateIngredienteDto, UpdateIngredienteDto } from '../mode
   providedIn: 'root'
 })
 export class IngredienteService {
-  private apiUrl = `${environment.apiUrl}/api/ingredientes`;
+  private apiUrl = `${environment.apiUrl}/ingredientes`;
 
   constructor(private http: HttpClient) {}
 
