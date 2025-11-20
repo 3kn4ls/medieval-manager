@@ -3,6 +3,7 @@ import { BOCATAS_PREDEFINIDOS } from '../config/menu';
 import { isWithinOrderWindow, getNextMonday, getThursdayDeadline, getWeekNumber } from '../utils/dateUtils';
 import BocadilloAlquimista from '../models/BocadilloAlquimista';
 import Ingrediente from '../models/Ingrediente';
+import SystemConfig from '../models/SystemConfig';
 import { AuthRequest } from '../middleware/auth';
 import { UserRole } from '../models/User';
 
@@ -68,19 +69,58 @@ export const getBocatasPredefinidos = async (req: Request, res: Response) => {
 };
 
 export const getOrderWindowStatus = async (req: Request, res: Response) => {
-  const isOpen = isWithinOrderWindow();
-  const now = new Date();
+  try {
+    const config = await SystemConfig.findOne();
+    const now = new Date();
 
-  res.json({
-    success: true,
-    data: {
-      isOpen,
-      currentTime: now.toISOString(),
-      deadline: getThursdayDeadline(now).toISOString(),
-      nextOpening: isOpen ? null : getNextMonday(now).toISOString(),
-      message: isOpen
-        ? 'Ventana de pedidos abierta'
-        : 'Ventana de pedidos cerrada. Se abrirá el próximo lunes.',
-    },
-  });
+    // Si el admin ha cerrado manualmente
+    if (config?.manuallyClosedOrders) {
+      return res.json({
+        success: true,
+        data: {
+          isOpen: false,
+          currentTime: now.toISOString(),
+          deadline: getThursdayDeadline(now).toISOString(),
+          nextOpening: getNextMonday(now).toISOString(),
+          message: config.closureMessage || 'El servicio de bocadillos está cerrado esta semana. Vuelve a probar la próxima semana.',
+          manuallyClosed: true,
+        },
+      });
+    }
+
+    // Verificación automática por fecha
+    const isOpen = isWithinOrderWindow();
+
+    res.json({
+      success: true,
+      data: {
+        isOpen,
+        currentTime: now.toISOString(),
+        deadline: getThursdayDeadline(now).toISOString(),
+        nextOpening: isOpen ? null : getNextMonday(now).toISOString(),
+        message: isOpen
+          ? 'Ventana de pedidos abierta'
+          : 'Ventana de pedidos cerrada. Se abrirá el próximo lunes.',
+        manuallyClosed: false,
+      },
+    });
+  } catch (error) {
+    console.error('Error al obtener estado de ventana de pedidos:', error);
+    // Fallback a validación automática
+    const isOpen = isWithinOrderWindow();
+    const now = new Date();
+
+    res.json({
+      success: true,
+      data: {
+        isOpen,
+        currentTime: now.toISOString(),
+        deadline: getThursdayDeadline(now).toISOString(),
+        nextOpening: isOpen ? null : getNextMonday(now).toISOString(),
+        message: isOpen
+          ? 'Ventana de pedidos abierta'
+          : 'Ventana de pedidos cerrada. Se abrirá el próximo lunes.',
+      },
+    });
+  }
 };

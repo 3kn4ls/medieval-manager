@@ -1,16 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlquimistaService } from '../../services/alquimista.service';
 import { BocadilloService } from '../../services/bocadillo.service';
+import { SystemConfigService } from '../../services/system-config.service';
 import { AuthService } from '../../services/auth.service';
 import { TamanoBocadillo, TipoPan } from '../../models/bocadillo.model';
+import { SystemConfig } from '../../models/system-config.model';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
@@ -18,6 +20,7 @@ export class AdminComponent implements OnInit {
   private fb = inject(FormBuilder);
   private alquimistaService = inject(AlquimistaService);
   private bocadilloService = inject(BocadilloService);
+  private systemConfigService = inject(SystemConfigService);
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -33,6 +36,12 @@ export class AdminComponent implements OnInit {
   successMessage = '';
   alquimistaExistente = false;
 
+  // Configuración del sistema
+  systemConfig: SystemConfig | null = null;
+  isTogglingOrders = false;
+  customClosureMessage = '';
+  showClosureMessageInput = false;
+
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
 
@@ -40,6 +49,7 @@ export class AdminComponent implements OnInit {
     this.initForm();
     this.loadData();
     this.loadAlquimistaActual();
+    this.loadSystemConfig();
   }
 
   initForm() {
@@ -205,6 +215,62 @@ export class AdminComponent implements OnInit {
       tamano === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     );
+  }
+
+  // Gestión de configuración del sistema
+  loadSystemConfig() {
+    this.systemConfigService.getSystemConfig().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.systemConfig = response.data;
+          this.customClosureMessage = response.data.closureMessage || '';
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando configuración del sistema:', error);
+      },
+    });
+  }
+
+  toggleOrders() {
+    if (!this.systemConfig) return;
+
+    const newStatus = !this.systemConfig.manuallyClosedOrders;
+
+    // Si va a cerrar, mostrar input para mensaje personalizado
+    if (newStatus && !this.showClosureMessageInput) {
+      this.showClosureMessageInput = true;
+      return;
+    }
+
+    this.isTogglingOrders = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const updateData = {
+      manuallyClosedOrders: newStatus,
+      closureMessage: this.customClosureMessage || undefined,
+    };
+
+    this.systemConfigService.updateOrdersStatus(updateData).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.systemConfig = response.data;
+          this.successMessage = response.message || (newStatus ? 'Pedidos cerrados correctamente' : 'Pedidos abiertos correctamente');
+          this.showClosureMessageInput = false;
+        }
+        this.isTogglingOrders = false;
+      },
+      error: (error) => {
+        this.errorMessage = error.error?.error || 'Error al actualizar estado de pedidos';
+        this.isTogglingOrders = false;
+      },
+    });
+  }
+
+  cancelClosureMessage() {
+    this.showClosureMessageInput = false;
+    this.customClosureMessage = this.systemConfig?.closureMessage || '';
   }
 
   // Métodos de navegación
