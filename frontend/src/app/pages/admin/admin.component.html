@@ -11,63 +11,71 @@
     </nav>
   </header>
 
-  <!-- Control de Estado de Pedidos -->
-  <div class="card control-pedidos" *ngIf="systemConfig">
-    <h2>🔒 Control de Pedidos de la Semana</h2>
+<!-- Gestión de Cierre Semanal -->
+<div class="card">
+  <h2>🔒 Gestión de Cierre de Pedidos</h2>
+  <p class="subtitle">Controla el acceso a los pedidos semanales</p>
 
-    <div class="status-indicator">
-      <span class="status-badge" [class.open]="!systemConfig.manuallyClosedOrders" [class.closed]="systemConfig.manuallyClosedOrders">
-        {{ systemConfig.manuallyClosedOrders ? '🔴 CERRADO' : '🟢 ABIERTO' }}
-      </span>
-      <p class="status-text">
-        {{ systemConfig.manuallyClosedOrders
-          ? 'Los usuarios no pueden realizar pedidos esta semana'
-          : 'Los usuarios pueden realizar pedidos normalmente' }}
-      </p>
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmitSettings()">
+    <!-- Estado de cierre -->
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="ordersClosed" />
+        Cerrar pedidos temporalmente
+      </label>
     </div>
 
-    <!-- Formulario para mensaje de cierre -->
-    <div class="closure-message-form" *ngIf="showClosureMessageInput">
-      <label for="closureMessage">Mensaje para los usuarios:</label>
+    <!-- Mensaje de cierre -->
+    <div class="form-group">
+      <label for="closedMessage">Mensaje de Cierre *</label>
       <textarea
-        id="closureMessage"
+        id="closedMessage"
         class="form-control"
-        [(ngModel)]="customClosureMessage"
+        formControlName="closedMessage"
         rows="3"
-        placeholder="Ej: El servicio de bocadillos está cerrado esta semana. Vuelve a probar la próxima semana."
+        placeholder="Mensaje que verán los usuarios cuando los pedidos estén cerrados"
       ></textarea>
-      <div class="closure-actions">
-        <button
-          class="btn btn-primary"
-          (click)="toggleOrders()"
-          [disabled]="isTogglingOrders || !customClosureMessage.trim()">
-          {{ isTogglingOrders ? 'Cerrando...' : 'Confirmar Cierre' }}
-        </button>
-        <button class="btn btn-secondary" (click)="cancelClosureMessage()">
-          Cancelar
-        </button>
-      </div>
     </div>
 
-    <!-- Botón de acción principal -->
-    <div class="action-container" *ngIf="!showClosureMessageInput">
-      <button
-        class="btn"
-        [class.btn-danger]="!systemConfig.manuallyClosedOrders"
-        [class.btn-success]="systemConfig.manuallyClosedOrders"
-        (click)="toggleOrders()"
-        [disabled]="isTogglingOrders">
-        {{ isTogglingOrders
-          ? 'Actualizando...'
-          : (systemConfig.manuallyClosedOrders ? '✅ Abrir Pedidos' : '🚫 Cerrar Pedidos') }}
+    <!-- Fecha de reapertura -->
+    <div class="form-group">
+      <label for="closedUntilDate">Fecha de Reapertura (Opcional)</label>
+      <input
+        type="datetime-local"
+        id="closedUntilDate"
+        class="form-control"
+        formControlName="closedUntilDate"
+      />
+      <small class="form-text">Si se especifica, se mostrará a los usuarios</small>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="alert alert-danger" *ngIf="settingsErrorMessage">
+      {{ settingsErrorMessage }}
+    </div>
+
+    <div class="alert alert-success" *ngIf="settingsSuccessMessage">
+      {{ settingsSuccessMessage }}
+    </div>
+
+    <!-- Botón -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmittingSettings">
+        {{ isSubmittingSettings ? 'Guardando...' : 'Guardar Configuración' }}
       </button>
-
-      <p class="current-message" *ngIf="systemConfig.manuallyClosedOrders && systemConfig.closureMessage">
-        <strong>Mensaje actual:</strong><br>
-        "{{ systemConfig.closureMessage }}"
-      </p>
     </div>
+  </form>
+
+  <div class="info-box">
+    <h3>ℹ️ Información</h3>
+    <ul>
+      <li>Cuando los pedidos están cerrados, los usuarios no podrán crear ni editar pedidos</li>
+      <li>Los usuarios verán el mensaje personalizado que configures</li>
+      <li>Los administradores siempre pueden crear y editar pedidos</li>
+      <li>Los usuarios pueden cancelar sus pedidos existentes incluso con cierre activo</li>
+    </ul>
   </div>
+</div>
 
 <div class="card">
   <h2>🧙‍♂️ Gestión del Bocadillo Alquimista</h2>

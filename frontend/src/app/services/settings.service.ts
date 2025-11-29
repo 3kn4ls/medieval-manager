@@ -5,6 +5,9 @@ import { environment } from '../../environments/environment';
 
 export interface Settings {
   publicRegistrationEnabled: boolean;
+  ordersClosed: boolean;
+  closedMessage: string;
+  closedUntilDate?: Date;
   updatedAt: Date;
 }
 

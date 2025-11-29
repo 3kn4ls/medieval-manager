@@ -10,6 +10,8 @@ export const getSettings = async (req: Request, res: Response) => {
     if (!settings) {
       settings = new Settings({
         publicRegistrationEnabled: false,
+        ordersClosed: false,
+        closedMessage: 'Las solicitudes de bocadillos están cerradas temporalmente',
       });
       await settings.save();
     }
@@ -30,7 +32,7 @@ export const getSettings = async (req: Request, res: Response) => {
 // Actualizar configuración (solo admin)
 export const updateSettings = async (req: Request, res: Response) => {
   try {
-    const { publicRegistrationEnabled } = req.body;
+    const { publicRegistrationEnabled, ordersClosed, closedMessage, closedUntilDate } = req.body;
 
     let settings = await Settings.findOne();
 
@@ -40,6 +42,18 @@ export const updateSettings = async (req: Request, res: Response) => {
 
     if (publicRegistrationEnabled !== undefined) {
       settings.publicRegistrationEnabled = publicRegistrationEnabled;
+    }
+
+    if (ordersClosed !== undefined) {
+      settings.ordersClosed = ordersClosed;
+    }
+
+    if (closedMessage !== undefined) {
+      settings.closedMessage = closedMessage;
+    }
+
+    if (closedUntilDate !== undefined) {
+      settings.closedUntilDate = closedUntilDate;
     }
 
     await settings.save();

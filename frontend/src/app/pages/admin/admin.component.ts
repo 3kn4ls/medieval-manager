@@ -1,18 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlquimistaService } from '../../services/alquimista.service';
 import { BocadilloService } from '../../services/bocadillo.service';
-import { SystemConfigService } from '../../services/system-config.service';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService, Settings } from '../../services/settings.service';
 import { TamanoBocadillo, TipoPan } from '../../models/bocadillo.model';
-import { SystemConfig } from '../../models/system-config.model';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
@@ -20,11 +19,12 @@ export class AdminComponent implements OnInit {
   private fb = inject(FormBuilder);
   private alquimistaService = inject(AlquimistaService);
   private bocadilloService = inject(BocadilloService);
-  private systemConfigService = inject(SystemConfigService);
   private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
   private router = inject(Router);
 
   form!: FormGroup;
+  settingsForm!: FormGroup;
   ingredientesDisponibles: string[] = [];
   ingredientesFiltrados: string[] = [];
   ingredientesSeleccionados: string[] = [];
@@ -35,21 +35,20 @@ export class AdminComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   alquimistaExistente = false;
-
-  // Configuración del sistema
-  systemConfig: SystemConfig | null = null;
-  isTogglingOrders = false;
-  customClosureMessage = '';
-  showClosureMessageInput = false;
+  settings: Settings | null = null;
+  settingsErrorMessage = '';
+  settingsSuccessMessage = '';
+  isSubmittingSettings = false;
 
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
 
   ngOnInit() {
     this.initForm();
+    this.initSettingsForm();
     this.loadData();
     this.loadAlquimistaActual();
-    this.loadSystemConfig();
+    this.loadSettings();
   }
 
   initForm() {
@@ -217,62 +216,6 @@ export class AdminComponent implements OnInit {
     );
   }
 
-  // Gestión de configuración del sistema
-  loadSystemConfig() {
-    this.systemConfigService.getSystemConfig().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.systemConfig = response.data;
-          this.customClosureMessage = response.data.closureMessage || '';
-        }
-      },
-      error: (error) => {
-        console.error('Error cargando configuración del sistema:', error);
-      },
-    });
-  }
-
-  toggleOrders() {
-    if (!this.systemConfig) return;
-
-    const newStatus = !this.systemConfig.manuallyClosedOrders;
-
-    // Si va a cerrar, mostrar input para mensaje personalizado
-    if (newStatus && !this.showClosureMessageInput) {
-      this.showClosureMessageInput = true;
-      return;
-    }
-
-    this.isTogglingOrders = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const updateData = {
-      manuallyClosedOrders: newStatus,
-      closureMessage: this.customClosureMessage || undefined,
-    };
-
-    this.systemConfigService.updateOrdersStatus(updateData).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.systemConfig = response.data;
-          this.successMessage = response.message || (newStatus ? 'Pedidos cerrados correctamente' : 'Pedidos abiertos correctamente');
-          this.showClosureMessageInput = false;
-        }
-        this.isTogglingOrders = false;
-      },
-      error: (error) => {
-        this.errorMessage = error.error?.error || 'Error al actualizar estado de pedidos';
-        this.isTogglingOrders = false;
-      },
-    });
-  }
-
-  cancelClosureMessage() {
-    this.showClosureMessageInput = false;
-    this.customClosureMessage = this.systemConfig?.closureMessage || '';
-  }
-
   // Métodos de navegación
   goToOrders(): void {
     this.router.navigate(['/orders']);
@@ -293,5 +236,69 @@ export class AdminComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  // Gestión de Settings
+  initSettingsForm() {
+    this.settingsForm = this.fb.group({
+      ordersClosed: [false],
+      closedMessage: ['Las solicitudes de bocadillos están cerradas temporalmente'],
+      closedUntilDate: [''],
+    });
+  }
+
+  loadSettings() {
+    this.settingsService.getSettings().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.settings = response.data;
+          this.settingsForm.patchValue({
+            ordersClosed: response.data.ordersClosed,
+            closedMessage: response.data.closedMessage,
+            closedUntilDate: response.data.closedUntilDate
+              ? new Date(response.data.closedUntilDate).toISOString().slice(0, 16)
+              : '',
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading settings:', error);
+      },
+    });
+  }
+
+  onSubmitSettings() {
+    if (this.settingsForm.invalid) {
+      this.settingsErrorMessage = 'Por favor, completa todos los campos correctamente';
+      return;
+    }
+
+    this.isSubmittingSettings = true;
+    this.settingsErrorMessage = '';
+    this.settingsSuccessMessage = '';
+
+    const formValue = this.settingsForm.value;
+    const data: any = {
+      ordersClosed: formValue.ordersClosed,
+      closedMessage: formValue.closedMessage,
+    };
+
+    if (formValue.closedUntilDate) {
+      data.closedUntilDate = new Date(formValue.closedUntilDate).toISOString();
+    }
+
+    this.settingsService.updateSettings(data).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.settingsSuccessMessage = 'Configuración actualizada correctamente';
+          this.settings = response.data!;
+        }
+        this.isSubmittingSettings = false;
+      },
+      error: (error) => {
+        this.settingsErrorMessage = error.error?.error || 'Error al actualizar la configuración';
+        this.isSubmittingSettings = false;
+      },
+    });
   }
 }

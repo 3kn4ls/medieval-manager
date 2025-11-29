@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Bocadillo from '../models/Bocadillo';
+import Settings from '../models/Settings';
 import { createBocadilloSchema } from '../validators/bocadilloValidator';
 import { getWeekNumber } from '../utils/dateUtils';
 import { ZodError } from 'zod';
@@ -14,6 +15,16 @@ export const createBocadillo = async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: 'Usuario no autenticado',
+      });
+    }
+
+    // Verificar si los pedidos están cerrados (excepto para admins)
+    const settings = await Settings.findOne();
+    if (settings?.ordersClosed && user.role !== UserRole.ADMIN) {
+      return res.status(403).json({
+        success: false,
+        error: settings.closedMessage,
+        closedUntilDate: settings.closedUntilDate,
       });
     }
 
@@ -89,6 +100,16 @@ export const updateBocadillo = async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: 'Usuario no autenticado',
+      });
+    }
+
+    // Verificar si los pedidos están cerrados (excepto para admins)
+    const settings = await Settings.findOne();
+    if (settings?.ordersClosed && user.role !== UserRole.ADMIN) {
+      return res.status(403).json({
+        success: false,
+        error: settings.closedMessage,
+        closedUntilDate: settings.closedUntilDate,
       });
     }
 
