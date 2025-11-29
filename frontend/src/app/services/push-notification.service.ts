@@ -71,7 +71,8 @@ export class PushNotificationService {
   async unsubscribe(): Promise<void> {
     try {
       if (!this.swRegistration) {
-        this.swRegistration = await navigator.serviceWorker.getRegistration();
+        const registration = await navigator.serviceWorker.getRegistration();
+        this.swRegistration = registration || null;
       }
 
       if (!this.swRegistration) {
