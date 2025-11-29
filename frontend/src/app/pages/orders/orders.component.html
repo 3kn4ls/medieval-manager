@@ -1,5 +1,13 @@
+<!-- Mensaje de cierre administrativo -->
+<div *ngIf="settings()?.ordersClosed" class="alert alert-danger">
+  <h4>🔒 {{ settings()!.closedMessage }}</h4>
+  <p *ngIf="getClosedUntilDate()">
+    <strong>Reapertura prevista:</strong> {{ getClosedUntilDate() }}
+  </p>
+</div>
+
 <!-- Estado de la ventana de pedidos -->
-<div *ngIf="orderWindowStatus()">
+<div *ngIf="orderWindowStatus() && !settings()?.ordersClosed">
   <div class="alert alert-success" *ngIf="orderWindowStatus()!.isOpen">
     ✅ {{ orderWindowStatus()!.message }}
     <br />
@@ -13,8 +21,23 @@
   </div>
 </div>
 
-<!-- Formulario (solo si la ventana está abierta) -->
-<div *ngIf="orderWindowStatus()?.isOpen">
+<!-- Botón de notificaciones push -->
+<div class="mb-4">
+  <button
+    class="btn btn-outline-primary"
+    (click)="togglePushNotifications()"
+    [disabled]="isSubscribing()">
+    <span *ngIf="isSubscribing()">⏳ Procesando...</span>
+    <span *ngIf="!isSubscribing() && !isSubscribedToPush()">🔔 Activar notificaciones</span>
+    <span *ngIf="!isSubscribing() && isSubscribedToPush()">🔕 Desactivar notificaciones</span>
+  </button>
+  <small class="d-block mt-2 text-muted" *ngIf="isSubscribedToPush()">
+    Recibirás una notificación 6 horas antes del cierre semanal de pedidos.
+  </small>
+</div>
+
+<!-- Formulario (solo si está permitido pedir) -->
+<div *ngIf="isOrderingAllowed()">
   <app-bocadillo-form
     [editingBocadillo]="editingBocadillo()"
     (bocadilloCreated)="onBocadilloCreated($event)"

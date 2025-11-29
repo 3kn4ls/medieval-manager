@@ -11,6 +11,72 @@
     </nav>
   </header>
 
+<!-- Gestión de Cierre Semanal -->
+<div class="card">
+  <h2>🔒 Gestión de Cierre de Pedidos</h2>
+  <p class="subtitle">Controla el acceso a los pedidos semanales</p>
+
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmitSettings()">
+    <!-- Estado de cierre -->
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="ordersClosed" />
+        Cerrar pedidos temporalmente
+      </label>
+    </div>
+
+    <!-- Mensaje de cierre -->
+    <div class="form-group">
+      <label for="closedMessage">Mensaje de Cierre *</label>
+      <textarea
+        id="closedMessage"
+        class="form-control"
+        formControlName="closedMessage"
+        rows="3"
+        placeholder="Mensaje que verán los usuarios cuando los pedidos estén cerrados"
+      ></textarea>
+    </div>
+
+    <!-- Fecha de reapertura -->
+    <div class="form-group">
+      <label for="closedUntilDate">Fecha de Reapertura (Opcional)</label>
+      <input
+        type="datetime-local"
+        id="closedUntilDate"
+        class="form-control"
+        formControlName="closedUntilDate"
+      />
+      <small class="form-text">Si se especifica, se mostrará a los usuarios</small>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="alert alert-danger" *ngIf="settingsErrorMessage">
+      {{ settingsErrorMessage }}
+    </div>
+
+    <div class="alert alert-success" *ngIf="settingsSuccessMessage">
+      {{ settingsSuccessMessage }}
+    </div>
+
+    <!-- Botón -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmittingSettings">
+        {{ isSubmittingSettings ? 'Guardando...' : 'Guardar Configuración' }}
+      </button>
+    </div>
+  </form>
+
+  <div class="info-box">
+    <h3>ℹ️ Información</h3>
+    <ul>
+      <li>Cuando los pedidos están cerrados, los usuarios no podrán crear ni editar pedidos</li>
+      <li>Los usuarios verán el mensaje personalizado que configures</li>
+      <li>Los administradores siempre pueden crear y editar pedidos</li>
+      <li>Los usuarios pueden cancelar sus pedidos existentes incluso con cierre activo</li>
+    </ul>
+  </div>
+</div>
+
 <div class="card">
   <h2>🧙‍♂️ Gestión del Bocadillo Alquimista</h2>
   <p class="subtitle">Define el bocadillo sorpresa de esta semana</p>
