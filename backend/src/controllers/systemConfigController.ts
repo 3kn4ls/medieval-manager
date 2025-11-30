@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import mongoose from 'mongoose';
 import SystemConfig from '../models/SystemConfig';
 import { AuthRequest } from '../middleware/auth';
 
@@ -59,7 +60,7 @@ export const updateOrdersStatus = async (req: AuthRequest, res: Response): Promi
     }
 
     if (manuallyClosedOrders) {
-      config.closedBy = req.user?.userId;
+      config.closedBy = req.user?.userId ? new mongoose.Types.ObjectId(req.user.userId) : undefined;
       config.closedAt = new Date();
     } else {
       config.closedBy = undefined;
