@@ -148,14 +148,28 @@ export const unsubscribe = async (req: Request, res: Response) => {
 };
 
 // Enviar notificación a todos los usuarios suscritos
-export const sendNotificationToAll = async (title: string, body: string, data?: any) => {
+export const sendNotificationToAll = async (
+  title: string,
+  body: string,
+  data?: any,
+  excludeUserIds?: string[]
+) => {
   try {
     if (!vapidInitialized || !areVapidKeysConfigured()) {
       console.warn('No se pueden enviar notificaciones: VAPID no configurado');
       return;
     }
 
-    const subscriptions = await PushSubscription.find({});
+    // Obtener todas las suscripciones
+    let subscriptions = await PushSubscription.find({});
+
+    // Filtrar usuarios excluidos si se proporciona la lista
+    if (excludeUserIds && excludeUserIds.length > 0) {
+      subscriptions = subscriptions.filter(
+        (sub) => !excludeUserIds.includes(sub.userId.toString())
+      );
+      console.log(`Filtered out ${excludeUserIds.length} users - sending to ${subscriptions.length} users`);
+    }
 
     const payload = JSON.stringify({
       title,
@@ -213,11 +227,35 @@ export const sendManualNotification = async (req: Request, res: Response) => {
       });
     }
 
-    await sendNotificationToAll(title, body, data);
+    // Importar dependencias necesarias para filtrado
+    const Settings = (await import('../models/Settings')).default;
+    const Bocadillo = (await import('../models/Bocadillo')).default;
+    const { getWeekNumber } = await import('../utils/dateUtils');
+
+    // Verificar si los pedidos están cerrados
+    const settings = await Settings.findOne();
+    if (settings?.ordersClosed) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se pueden enviar notificaciones mientras los pedidos están cerrados',
+      });
+    }
+
+    // Obtener usuarios que YA tienen bocadillo para esta semana
+    const { week, year } = getWeekNumber(new Date());
+    const bocadillos = await Bocadillo.find({ semana: week, ano: year });
+    const usersWithOrder = bocadillos
+      .map((b) => b.userId?.toString())
+      .filter((id): id is string => !!id);
+
+    console.log(`Sending manual notification - excluding ${usersWithOrder.length} users with orders`);
+
+    // Enviar notificación solo a usuarios sin pedido
+    await sendNotificationToAll(title, body, data, usersWithOrder);
 
     res.json({
       success: true,
-      message: 'Notificaciones enviadas correctamente',
+      message: `Notificaciones enviadas correctamente (excluidos ${usersWithOrder.length} usuarios que ya tienen pedido)`,
     });
   } catch (error) {
     console.error('Error sending manual notification:', error);

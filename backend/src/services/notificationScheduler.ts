@@ -1,5 +1,8 @@
 import cron from 'node-cron';
 import { sendNotificationToAll } from '../controllers/pushController';
+import Settings from '../models/Settings';
+import Bocadillo from '../models/Bocadillo';
+import { getWeekNumber } from '../utils/dateUtils';
 
 let notificationSent = false;
 let currentWeek = 0;
@@ -28,14 +31,34 @@ export function initNotificationScheduler() {
     // Si es jueves (4) a las 11:00 y no hemos enviado la notificación esta semana
     if (dayOfWeek === 4 && hours === 11 && !notificationSent) {
       try {
-        console.log('Sending 6-hour deadline reminder notification...');
+        console.log('Checking if deadline reminder notification should be sent...');
+
+        // Verificar si los pedidos están cerrados
+        const settings = await Settings.findOne();
+        if (settings?.ordersClosed) {
+          console.log('Pedidos cerrados - No se enviarán notificaciones');
+          notificationSent = true; // Marcar como enviado para no reintentar
+          return;
+        }
+
+        // Obtener usuarios que YA tienen bocadillo para esta semana
+        const { week, year } = getWeekNumber(now);
+        const bocadillos = await Bocadillo.find({ semana: week, ano: year });
+        const usersWithOrder = bocadillos
+          .map((b) => b.userId?.toString())
+          .filter((id): id is string => !!id);
+
+        console.log(`Found ${usersWithOrder.length} users with orders this week - they will be excluded`);
+
+        // Enviar notificación solo a usuarios sin pedido
         await sendNotificationToAll(
           '⏰ ¡Últimas horas para pedir!',
           'Quedan 6 horas para el cierre de pedidos de bocadillos. ¡No te olvides de hacer tu pedido!',
           {
             url: '/orders',
             tag: 'deadline-reminder',
-          }
+          },
+          usersWithOrder // Excluir usuarios que ya tienen pedido
         );
         notificationSent = true;
         console.log('Deadline reminder notification sent successfully');

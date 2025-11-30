@@ -137,4 +137,11 @@ export class PushNotificationService {
     }
     return window.btoa(binary);
   }
+
+  sendManualNotification(title: string, body: string): Observable<{ success: boolean; message?: string; error?: string }> {
+    return this.http.post<{ success: boolean; message?: string; error?: string }>(
+      `${this.apiUrl}/push/send`,
+      { title, body }
+    );
+  }
 }

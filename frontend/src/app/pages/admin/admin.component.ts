@@ -6,6 +6,7 @@ import { AlquimistaService } from '../../services/alquimista.service';
 import { BocadilloService } from '../../services/bocadillo.service';
 import { AuthService } from '../../services/auth.service';
 import { SettingsService, Settings } from '../../services/settings.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 import { TamanoBocadillo, TipoPan } from '../../models/bocadillo.model';
 
 @Component({
@@ -21,10 +22,12 @@ export class AdminComponent implements OnInit {
   private bocadilloService = inject(BocadilloService);
   private authService = inject(AuthService);
   private settingsService = inject(SettingsService);
+  private pushService = inject(PushNotificationService);
   private router = inject(Router);
 
   form!: FormGroup;
   settingsForm!: FormGroup;
+  notificationForm!: FormGroup;
   ingredientesDisponibles: string[] = [];
   ingredientesFiltrados: string[] = [];
   ingredientesSeleccionados: string[] = [];
@@ -39,6 +42,9 @@ export class AdminComponent implements OnInit {
   settingsErrorMessage = '';
   settingsSuccessMessage = '';
   isSubmittingSettings = false;
+  notificationErrorMessage = '';
+  notificationSuccessMessage = '';
+  isSubmittingNotification = false;
 
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
@@ -46,6 +52,7 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     this.initForm();
     this.initSettingsForm();
+    this.initNotificationForm();
     this.loadData();
     this.loadAlquimistaActual();
     this.loadSettings();
@@ -298,6 +305,41 @@ export class AdminComponent implements OnInit {
       error: (error) => {
         this.settingsErrorMessage = error.error?.error || 'Error al actualizar la configuración';
         this.isSubmittingSettings = false;
+      },
+    });
+  }
+
+  // Gestión de Notificaciones Push
+  initNotificationForm() {
+    this.notificationForm = this.fb.group({
+      title: ['', Validators.required],
+      body: ['', Validators.required],
+    });
+  }
+
+  onSubmitNotification() {
+    if (this.notificationForm.invalid) {
+      this.notificationErrorMessage = 'Por favor, completa todos los campos';
+      return;
+    }
+
+    this.isSubmittingNotification = true;
+    this.notificationErrorMessage = '';
+    this.notificationSuccessMessage = '';
+
+    const { title, body } = this.notificationForm.value;
+
+    this.pushService.sendManualNotification(title, body).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.notificationSuccessMessage = response.message || 'Notificaciones enviadas correctamente';
+          this.notificationForm.reset();
+        }
+        this.isSubmittingNotification = false;
+      },
+      error: (error) => {
+        this.notificationErrorMessage = error.error?.error || 'Error al enviar las notificaciones';
+        this.isSubmittingNotification = false;
       },
     });
   }
