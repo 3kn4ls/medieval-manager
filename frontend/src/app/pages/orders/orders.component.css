@@ -1,1 +1,67 @@
-/* Estilos específicos de la página de orders si es necesario */
+/* Header con logo */
+.page-header {
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown-medium) 100%);
+  padding: 25px 30px;
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 8px 20px var(--shadow-dark);
+  border: 3px solid var(--gold-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20px;
+  width: 200px;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+  transform: skewX(-20deg);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2.2em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 20px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8em;
+  }
+}

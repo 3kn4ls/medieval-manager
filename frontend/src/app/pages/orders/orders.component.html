@@ -1,3 +1,11 @@
+<!-- Header con logo -->
+<div class="page-header">
+  <div class="header-content">
+    <img src="/assets/images/mma-logo.svg" alt="MMA Logo" class="logo" />
+    <h1>Medieval Manager Alchemyst</h1>
+  </div>
+</div>
+
 <!-- Mensaje de cierre administrativo -->
 <div *ngIf="settings()?.ordersClosed" class="alert alert-danger">
   <h4>🔒 {{ settings()!.closedMessage }}</h4>
