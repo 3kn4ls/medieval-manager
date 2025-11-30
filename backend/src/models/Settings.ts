@@ -2,13 +2,28 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISettings extends Document {
   publicRegistrationEnabled: boolean;
+  ordersClosed: boolean;
+  closedMessage: string;
+  closedUntilDate?: Date;
   updatedAt: Date;
 }
 
 const SettingsSchema: Schema = new Schema({
   publicRegistrationEnabled: {
     type: Boolean,
-    default: false, // Por defecto desactivado
+    default: false,
+  },
+  ordersClosed: {
+    type: Boolean,
+    default: false,
+  },
+  closedMessage: {
+    type: String,
+    default: 'Las solicitudes de bocadillos están cerradas temporalmente',
+  },
+  closedUntilDate: {
+    type: Date,
+    default: null,
   },
   updatedAt: {
     type: Date,

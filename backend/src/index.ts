@@ -8,9 +8,12 @@ import authRoutes from './routes/authRoutes';
 import alquimistaRoutes from './routes/alquimistaRoutes';
 import settingsRoutes from './routes/settingsRoutes';
 import ingredientesRoutes from './routes/ingredientesRoutes';
+import systemConfigRoutes from './routes/systemConfigRoutes';
+import pushRoutes from './routes/pushRoutes';
 import User, { UserRole } from './models/User';
 import Ingrediente from './models/Ingrediente';
 import { INGREDIENTES_DISPONIBLES } from './config/menu';
+import { initNotificationScheduler } from './services/notificationScheduler';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -43,6 +46,8 @@ app.use('/api/alquimista', alquimistaRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/ingredientes', ingredientesRoutes);
+app.use('/api/system', systemConfigRoutes);
+app.use('/api/push', pushRoutes);
 
 // Ruta 404
 app.use((req, res) => {
@@ -173,6 +178,9 @@ const startServer = async () => {
 
     // Inicializar ingredientes automáticamente
     await initializeIngredientes();
+
+    // Inicializar scheduler de notificaciones
+    initNotificationScheduler();
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);

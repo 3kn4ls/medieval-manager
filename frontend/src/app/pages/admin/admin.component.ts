@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AlquimistaService } from '../../services/alquimista.service';
 import { BocadilloService } from '../../services/bocadillo.service';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService, Settings } from '../../services/settings.service';
 import { TamanoBocadillo, TipoPan } from '../../models/bocadillo.model';
 
 @Component({
@@ -19,9 +20,11 @@ export class AdminComponent implements OnInit {
   private alquimistaService = inject(AlquimistaService);
   private bocadilloService = inject(BocadilloService);
   private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
   private router = inject(Router);
 
   form!: FormGroup;
+  settingsForm!: FormGroup;
   ingredientesDisponibles: string[] = [];
   ingredientesFiltrados: string[] = [];
   ingredientesSeleccionados: string[] = [];
@@ -32,14 +35,20 @@ export class AdminComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   alquimistaExistente = false;
+  settings: Settings | null = null;
+  settingsErrorMessage = '';
+  settingsSuccessMessage = '';
+  isSubmittingSettings = false;
 
   readonly TamanoBocadillo = TamanoBocadillo;
   readonly TipoPan = TipoPan;
 
   ngOnInit() {
     this.initForm();
+    this.initSettingsForm();
     this.loadData();
     this.loadAlquimistaActual();
+    this.loadSettings();
   }
 
   initForm() {
@@ -227,5 +236,69 @@ export class AdminComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  // Gestión de Settings
+  initSettingsForm() {
+    this.settingsForm = this.fb.group({
+      ordersClosed: [false],
+      closedMessage: ['Las solicitudes de bocadillos están cerradas temporalmente'],
+      closedUntilDate: [''],
+    });
+  }
+
+  loadSettings() {
+    this.settingsService.getSettings().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.settings = response.data;
+          this.settingsForm.patchValue({
+            ordersClosed: response.data.ordersClosed,
+            closedMessage: response.data.closedMessage,
+            closedUntilDate: response.data.closedUntilDate
+              ? new Date(response.data.closedUntilDate).toISOString().slice(0, 16)
+              : '',
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading settings:', error);
+      },
+    });
+  }
+
+  onSubmitSettings() {
+    if (this.settingsForm.invalid) {
+      this.settingsErrorMessage = 'Por favor, completa todos los campos correctamente';
+      return;
+    }
+
+    this.isSubmittingSettings = true;
+    this.settingsErrorMessage = '';
+    this.settingsSuccessMessage = '';
+
+    const formValue = this.settingsForm.value;
+    const data: any = {
+      ordersClosed: formValue.ordersClosed,
+      closedMessage: formValue.closedMessage,
+    };
+
+    if (formValue.closedUntilDate) {
+      data.closedUntilDate = new Date(formValue.closedUntilDate).toISOString();
+    }
+
+    this.settingsService.updateSettings(data).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.settingsSuccessMessage = 'Configuración actualizada correctamente';
+          this.settings = response.data!;
+        }
+        this.isSubmittingSettings = false;
+      },
+      error: (error) => {
+        this.settingsErrorMessage = error.error?.error || 'Error al actualizar la configuración';
+        this.isSubmittingSettings = false;
+      },
+    });
   }
 }
