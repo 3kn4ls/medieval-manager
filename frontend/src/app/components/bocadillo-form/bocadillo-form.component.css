@@ -1,75 +1,90 @@
+/* ========================================
+   BOCADILLO FORM - Premium Design
+   ======================================== */
+
 .card-title-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-8);
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--spacing-4);
 }
 
 h2 {
   margin: 0;
-  color: var(--primary-color);
-  font-size: 24px;
+  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.01em;
 }
 
 .user-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--brand-gradient);
   color: white;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-brand);
 }
 
 .user-icon {
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .user-name {
-  letter-spacing: 0.5px;
+  letter-spacing: 0.01em;
 }
 
+/* Radio Group - Modern Selection */
 .radio-group {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-3);
   flex-wrap: wrap;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: normal;
+  transition: all var(--transition-base);
+  font-weight: var(--font-normal);
+  background: var(--bg-primary);
 }
 
 .radio-label:hover:not(:has(input:disabled)) {
-  border-color: var(--secondary-color);
-  background-color: #f8f9fa;
+  border-color: var(--brand-primary);
+  background-color: var(--brand-primary-light);
 }
 
 .radio-label:has(input:checked) {
-  border-color: var(--secondary-color);
-  background-color: #e3f2fd;
+  border-color: var(--brand-primary);
+  background-color: var(--brand-primary-light);
+  box-shadow: var(--shadow-brand);
 }
 
 .radio-label:has(input:disabled) {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--neutral-50);
 }
 
 .radio-label input[type='radio'] {
   cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-primary);
 }
 
+/* Autocomplete - Premium Dropdown */
 .autocomplete-container {
   position: relative;
 }
@@ -79,92 +94,113 @@ h2 {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 2px solid var(--secondary-color);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
   border-top: none;
-  border-radius: 0 0 6px 6px;
-  max-height: 200px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  max-height: 240px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: var(--z-dropdown);
   list-style: none;
   box-shadow: var(--shadow-lg);
+  margin-top: -1px;
 }
 
 .suggestions li {
-  padding: 12px 16px;
+  padding: var(--spacing-3) var(--spacing-4);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
 }
 
 .suggestions li:hover {
-  background-color: #f0f0f0;
+  background-color: var(--neutral-50);
 }
 
+.suggestions li:active {
+  background-color: var(--neutral-100);
+}
+
+/* Selected Items - Chips */
 .selected-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-3);
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: var(--secondary-color);
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--brand-primary);
   color: white;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  box-shadow: var(--shadow-xs);
 }
 
 .chip-remove {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: var(--text-lg);
   cursor: pointer;
   padding: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .chip-remove:hover {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
+.chip-remove:active {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Form Actions */
 .form-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-8);
 }
 
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
+/* .btn-secondary is already defined in global styles.css */
 
-.btn-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-}
+/* ========================================
+   RESPONSIVE
+   ======================================== */
 
 @media (max-width: 768px) {
+  .card-title-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
   .form-actions {
     flex-direction: column;
   }
 
   .radio-group {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-2);
   }
 
   .radio-label {
     width: 100%;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
   }
 }
