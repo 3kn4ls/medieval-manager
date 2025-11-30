@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Crown at the top -->
+  <g id="crown">
+    <path d="M100 30 L110 50 L130 45 L120 60 L135 65 L100 70 L65 65 L80 60 L70 45 L90 50 Z"
+          fill="#D4AF37" stroke="#8B6914" stroke-width="2"/>
+    <!-- Crown jewels -->
+    <circle cx="100" cy="50" r="3" fill="#8B0000"/>
+    <circle cx="85" cy="52" r="2.5" fill="#228B22"/>
+    <circle cx="115" cy="52" r="2.5" fill="#228B22"/>
+  </g>
+
+  <!-- Sandwich/Bocadillo -->
+  <g id="sandwich">
+    <!-- Top bread -->
+    <ellipse cx="100" cy="80" rx="50" ry="15" fill="#C19A6B" stroke="#8B6914" stroke-width="2"/>
+    <ellipse cx="100" cy="78" rx="50" ry="12" fill="#D2B48C"/>
+
+    <!-- Filling -->
+    <rect x="55" y="80" width="90" height="35" fill="#228B22" opacity="0.7"/>
+    <rect x="55" y="85" width="90" height="8" fill="#DC143C" opacity="0.8"/>
+    <rect x="55" y="95" width="90" height="8" fill="#FFD700" opacity="0.6"/>
+    <rect x="55" y="105" width="90" height="8" fill="#8B4513" opacity="0.7"/>
+
+    <!-- Bottom bread -->
+    <ellipse cx="100" cy="115" rx="50" ry="15" fill="#8B6914" stroke="#5D4E37" stroke-width="2"/>
+    <ellipse cx="100" cy="113" rx="50" ry="12" fill="#A0826D"/>
+  </g>
+
+  <!-- Boxing gloves -->
+  <g id="left-glove">
+    <path d="M40 100 Q35 105 35 115 Q35 125 40 130 L50 135 Q55 133 55 128 L55 110 Q55 105 50 103 Z"
+          fill="#8B0000" stroke="#5D0000" stroke-width="1.5"/>
+    <ellipse cx="45" cy="108" rx="8" ry="6" fill="#A0000D"/>
+    <line x1="40" y1="130" x2="35" y2="140" stroke="#5D0000" stroke-width="3"/>
+  </g>
+
+  <g id="right-glove">
+    <path d="M160 100 Q165 105 165 115 Q165 125 160 130 L150 135 Q145 133 145 128 L145 110 Q145 105 150 103 Z"
+          fill="#8B0000" stroke="#5D0000" stroke-width="1.5"/>
+    <ellipse cx="155" cy="108" rx="8" ry="6" fill="#A0000D"/>
+    <line x1="160" y1="130" x2="165" y2="140" stroke="#5D0000" stroke-width="3"/>
+  </g>
+
+  <!-- Medieval banner at bottom -->
+  <g id="banner">
+    <path d="M50 150 L150 150 L150 170 L100 175 L50 170 Z"
+          fill="#8B0000" stroke="#5D0000" stroke-width="2"/>
+    <text x="100" y="165" font-family="serif" font-size="16" font-weight="bold"
+          fill="#D4AF37" text-anchor="middle">MMA</text>
+  </g>
+</svg>
