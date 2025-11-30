@@ -36,6 +36,7 @@ export interface OrderWindowStatus {
   deadline: string;
   nextOpening: string | null;
   message: string;
+  manuallyClosed?: boolean;
 }
 
 export interface ApiResponse<T> {
