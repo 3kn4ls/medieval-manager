@@ -13,9 +13,19 @@ webpush.setVapidDetails(
 // Obtener clave pública VAPID
 export const getVapidPublicKey = async (req: Request, res: Response) => {
   try {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      console.error('VAPID_PUBLIC_KEY no está configurada en las variables de entorno');
+      return res.status(500).json({
+        success: false,
+        error: 'Las claves VAPID no están configuradas en el servidor',
+      });
+    }
+
     res.json({
       success: true,
-      publicKey: process.env.VAPID_PUBLIC_KEY,
+      publicKey,
     });
   } catch (error) {
     console.error('Error getting VAPID public key:', error);
