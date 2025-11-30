@@ -53,10 +53,17 @@ export const updateSettings = async (req: Request, res: Response) => {
     }
 
     if (closedUntilDate !== undefined) {
-      settings.closedUntilDate = closedUntilDate;
+      // Si se envía una string vacía o null, limpiar el campo
+      settings.closedUntilDate = closedUntilDate === '' || closedUntilDate === null ? undefined : closedUntilDate;
     }
 
     await settings.save();
+
+    console.log('Settings guardados:', {
+      ordersClosed: settings.ordersClosed,
+      closedMessage: settings.closedMessage,
+      closedUntilDate: settings.closedUntilDate,
+    });
 
     res.json({
       success: true,
