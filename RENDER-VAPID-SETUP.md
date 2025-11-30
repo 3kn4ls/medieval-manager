@@ -1,7 +1,19 @@
 # Configuración de Variables VAPID en Render
 
+## ℹ️ Actualización Importante
+
+**El servidor ahora puede arrancar sin las claves VAPID configuradas.**
+
+Las notificaciones push estarán simplemente deshabilitadas hasta que configures las variables de entorno. Esto significa que:
+- ✅ El backend desplegará correctamente sin VAPID
+- ⚠️ El endpoint `/api/push/vapid-public-key` devolverá un error 503 (Service Unavailable)
+- 📱 Los usuarios verán un mensaje claro indicando que las notificaciones no están disponibles
+- 🔧 Puedes configurar VAPID en cualquier momento después del deploy
+
+---
+
 ## Problema
-El error 404 en `/api/push/vapid-public-key` ocurre porque las variables de entorno VAPID no están configuradas en Render.
+El error 503 en `/api/push/vapid-public-key` indica que las variables de entorno VAPID no están configuradas en Render.
 
 ## Solución: Configurar Variables de Entorno en Render
 
