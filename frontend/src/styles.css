@@ -32,7 +32,8 @@
 
 body {
   font-family: 'Georgia', 'Palatino', 'Times New Roman', serif;
-  background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  /*background: linear-gradient(178deg, #ffffff 0%, #ffcfcf 100%);*/
+  background: whitesmoke;
   background-attachment: fixed;
   min-height: 100vh;
   color: var(--brown-dark);
