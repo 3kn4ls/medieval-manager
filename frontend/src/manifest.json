@@ -8,6 +8,7 @@
   "scope": "/",
   "start_url": "/",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon-96x96.png",
