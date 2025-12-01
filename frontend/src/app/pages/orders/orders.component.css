@@ -1,1 +1,76 @@
-/* Estilos específicos de la página de orders si es necesario */
+/* ========================================
+   ORDERS PAGE - Premium Design
+   ======================================== */
+
+.page-header {
+  position: relative;
+  margin-bottom: var(--spacing-8);
+  background: var(--brand-gradient);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-xl);
+  color: white;
+  box-shadow: var(--shadow-brand);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle overlay for depth */
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5);
+  z-index: 1;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  color: white;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .page-header h1 {
+    font-size: var(--text-2xl);
+  }
+}

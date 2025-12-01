@@ -1,6 +1,9 @@
 <div class="container">
   <header class="header">
-    <h1>Panel de Administración</h1>
+    <div class="header-content">
+      <img src="/assets/images/mma-logo.svg" alt="MMA Logo" class="logo" />
+      <h1>Panel de Administración</h1>
+    </div>
     <nav class="nav">
       <button (click)="goToOrders()" class="nav-btn">Pedidos</button>
       <button class="nav-btn active">Alquimista</button>
@@ -73,6 +76,64 @@
       <li>Los usuarios verán el mensaje personalizado que configures</li>
       <li>Los administradores siempre pueden crear y editar pedidos</li>
       <li>Los usuarios pueden cancelar sus pedidos existentes incluso con cierre activo</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Envío de Notificaciones Push -->
+<div class="card">
+  <h2>📢 Envío de Notificaciones Push</h2>
+  <p class="subtitle">Envía notificaciones manuales a todos los usuarios suscritos</p>
+
+  <form [formGroup]="notificationForm" (ngSubmit)="onSubmitNotification()">
+    <!-- Título -->
+    <div class="form-group">
+      <label for="notificationTitle">Título *</label>
+      <input
+        type="text"
+        id="notificationTitle"
+        class="form-control"
+        formControlName="title"
+        placeholder="Ej: ⏰ Recordatorio de pedidos"
+      />
+    </div>
+
+    <!-- Mensaje -->
+    <div class="form-group">
+      <label for="notificationBody">Mensaje *</label>
+      <textarea
+        id="notificationBody"
+        class="form-control"
+        formControlName="body"
+        rows="3"
+        placeholder="Ej: Quedan pocas horas para hacer tu pedido de bocadillo"
+      ></textarea>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="alert alert-danger" *ngIf="notificationErrorMessage">
+      {{ notificationErrorMessage }}
+    </div>
+
+    <div class="alert alert-success" *ngIf="notificationSuccessMessage">
+      {{ notificationSuccessMessage }}
+    </div>
+
+    <!-- Botón -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmittingNotification || notificationForm.invalid">
+        {{ isSubmittingNotification ? 'Enviando...' : 'Enviar Notificación' }}
+      </button>
+    </div>
+  </form>
+
+  <div class="info-box">
+    <h3>ℹ️ Información</h3>
+    <ul>
+      <li>Las notificaciones se enviarán a todos los usuarios que tengan activadas las notificaciones push</li>
+      <li>Solo se enviarán a usuarios que NO tengan pedido para la semana actual</li>
+      <li>No se enviarán notificaciones si los pedidos están cerrados temporalmente</li>
+      <li>Los usuarios recibirán la notificación en su dispositivo aunque no tengan la app abierta</li>
     </ul>
   </div>
 </div>
