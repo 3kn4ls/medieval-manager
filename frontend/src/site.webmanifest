@@ -1,7 +1,20 @@
 {
-  "name": "Medieval Manager Alchemist",
+  "name": "Medieval Manager Alchemyst",
   "short_name": "MMA",
+  "description": "Aplicación para gestionar pedidos semanales de bocadillos del equipo",
   "icons": [
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
@@ -15,7 +28,9 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#667eea",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/"
 }

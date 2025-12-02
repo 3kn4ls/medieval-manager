@@ -1,59 +1,68 @@
-/* Header con logo */
+/* ========================================
+   ORDERS PAGE - Premium Design
+   ======================================== */
+
 .page-header {
-  margin-bottom: 30px;
-  background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown-medium) 100%);
-  padding: 25px 30px;
-  border-radius: 15px;
-  color: white;
-  box-shadow: 0 8px 20px var(--shadow-dark);
-  border: 3px solid var(--gold-primary);
   position: relative;
+  margin-bottom: var(--spacing-8);
+  background: var(--brand-gradient);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-xl);
+  color: white;
+  box-shadow: var(--shadow-brand);
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Subtle overlay for depth */
 .page-header::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -20px;
-  width: 200px;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
-  transform: skewX(-20deg);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
 }
 
 .header-content {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 20px;
-  position: relative;
+  gap: var(--spacing-5);
   z-index: 1;
 }
 
 .logo {
   width: 70px;
   height: 70px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: 2.2em;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--gold-light);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  color: white;
 }
 
-/* Responsive */
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
 @media (max-width: 768px) {
   .page-header {
-    padding: 20px;
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
   }
 
   .header-content {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--spacing-3);
   }
 
   .logo {
@@ -62,6 +71,6 @@
   }
 
   .page-header h1 {
-    font-size: 1.8em;
+    font-size: var(--text-2xl);
   }
 }

@@ -63,8 +63,8 @@ self.addEventListener('push', (event) => {
   let notification = {
     title: 'Medieval Manager',
     body: 'Nueva notificación',
-    icon: '/assets/icons/icon-192x192.png',
-    badge: '/assets/icons/icon-96x96.png',
+    icon: '/web-app-manifest-192x192.png',
+    badge: '/favicon-96x96.png',
     data: {},
   };
 
