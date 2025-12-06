@@ -174,6 +174,12 @@ h2 {
   margin-top: var(--spacing-8);
 }
 
+/* Load Last Bocadillo Button */
+.btn-load-last {
+  width: 100%;
+  justify-content: center;
+}
+
 /* .btn-secondary is already defined in global styles.css */
 
 /* ========================================

@@ -336,3 +336,135 @@ export const getEstadisticasGenerales = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Obtener agrupación global por conjunto de ingredientes
+export const getAgrupacionPorIngredientesGlobal = async (req: Request, res: Response) => {
+  try {
+    const agrupacion = await Bocadillo.aggregate([
+      {
+        $project: {
+          tamano: 1,
+          tipoPan: 1,
+          ingredientes: 1,
+          ingredientesKey: {
+            $reduce: {
+              input: { $sortArray: { input: '$ingredientes', sortBy: 1 } },
+              initialValue: '',
+              in: {
+                $concat: [
+                  '$$value',
+                  { $cond: [{ $eq: ['$$value', ''] }, '', ','] },
+                  '$$this'
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            tamano: '$tamano',
+            tipoPan: '$tipoPan',
+            ingredientesKey: '$ingredientesKey'
+          },
+          count: { $sum: 1 },
+          ingredientes: { $first: { $sortArray: { input: '$ingredientes', sortBy: 1 } } }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          tamano: '$_id.tamano',
+          tipoPan: '$_id.tipoPan',
+          ingredientes: 1,
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: agrupacion,
+    });
+  } catch (error) {
+    console.error('Error fetching agrupación por ingredientes global:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener agrupación por ingredientes global',
+    });
+  }
+};
+
+// Obtener agrupación del usuario por conjunto de ingredientes
+export const getAgrupacionPorIngredientesUsuario = async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthRequest).user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+    }
+
+    const agrupacion = await Bocadillo.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(user.userId) } },
+      {
+        $project: {
+          tamano: 1,
+          tipoPan: 1,
+          ingredientes: 1,
+          ingredientesKey: {
+            $reduce: {
+              input: { $sortArray: { input: '$ingredientes', sortBy: 1 } },
+              initialValue: '',
+              in: {
+                $concat: [
+                  '$$value',
+                  { $cond: [{ $eq: ['$$value', ''] }, '', ','] },
+                  '$$this'
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            tamano: '$tamano',
+            tipoPan: '$tipoPan',
+            ingredientesKey: '$ingredientesKey'
+          },
+          count: { $sum: 1 },
+          ingredientes: { $first: { $sortArray: { input: '$ingredientes', sortBy: 1 } } }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          tamano: '$_id.tamano',
+          tipoPan: '$_id.tipoPan',
+          ingredientes: 1,
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: agrupacion,
+    });
+  } catch (error) {
+    console.error('Error fetching agrupación por ingredientes de usuario:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener agrupación por ingredientes del usuario',
+    });
+  }
+};

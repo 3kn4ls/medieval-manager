@@ -4,6 +4,8 @@ import {
   getBocadillosMasPedidosGlobal,
   getBocadillosMasPedidosUsuario,
   getEstadisticasGenerales,
+  getAgrupacionPorIngredientesGlobal,
+  getAgrupacionPorIngredientesUsuario,
 } from '../controllers/estadisticasController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -20,5 +22,11 @@ router.get('/mas-pedidos-usuario', authenticateToken, getBocadillosMasPedidosUsu
 
 // Obtener estadísticas generales
 router.get('/generales', authenticateToken, getEstadisticasGenerales);
+
+// Obtener agrupación global por conjunto de ingredientes
+router.get('/agrupacion-ingredientes-global', authenticateToken, getAgrupacionPorIngredientesGlobal);
+
+// Obtener agrupación del usuario por conjunto de ingredientes
+router.get('/agrupacion-ingredientes-usuario', authenticateToken, getAgrupacionPorIngredientesUsuario);
 
 export default router;
