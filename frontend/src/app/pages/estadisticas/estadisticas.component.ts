@@ -416,49 +416,45 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
     const ctx = this.agrupacionGlobalCanvas.nativeElement.getContext('2d');
     if (ctx) {
       const labels = this.agrupacionGlobal.map(item => {
-        const tamano = item.tamano === 'normal' ? 'N' : 'G';
-        const pan = item.tipoPan === 'normal' ? 'N' : (item.tipoPan === 'integral' ? 'I' : 'S');
-        const ingredientes = item.ingredientes.slice(0, 3).join(', ') + (item.ingredientes.length > 3 ? '...' : '');
-        return `${tamano}/${pan}: ${ingredientes}`;
+        const tamano = item.tamano === 'normal' ? 'Normal' : 'Grande';
+        const pan = item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas');
+        const ingredientes = item.ingredientes.join(', ');
+        return `${tamano} / ${pan} / ${ingredientes}`;
       });
 
       const config: ChartConfiguration = {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Veces pedido',
             data: this.agrupacionGlobal.map(item => item.count),
-            backgroundColor: 'rgba(153, 102, 255, 0.6)',
-            borderColor: 'rgba(153, 102, 255, 1)',
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(199, 199, 199, 0.6)',
+              'rgba(83, 102, 255, 0.6)',
+              'rgba(255, 99, 255, 0.6)',
+              'rgba(99, 255, 132, 0.6)',
+            ],
             borderWidth: 1,
           }],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0,
-              },
-            },
-          },
           plugins: {
             legend: {
-              display: false,
+              position: 'right',
             },
             tooltip: {
               callbacks: {
                 label: (context) => {
                   const item = this.agrupacionGlobal[context.dataIndex];
-                  return [
-                    `Pedidos: ${item.count}`,
-                    `Tamaño: ${item.tamano === 'normal' ? 'Normal' : 'Grande'}`,
-                    `Pan: ${item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas')}`,
-                    `Ingredientes: ${item.ingredientes.join(', ')}`
-                  ];
+                  return `${item.count} pedidos`;
                 }
               }
             }
