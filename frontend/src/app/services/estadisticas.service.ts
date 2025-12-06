@@ -55,8 +55,6 @@ export interface EstadisticasGenerales {
 }
 
 export interface AgrupacionIngredientes {
-  tamano: string;
-  tipoPan: string;
   ingredientes: string[];
   count: number;
 }

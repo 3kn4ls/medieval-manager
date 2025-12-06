@@ -343,8 +343,6 @@ export const getAgrupacionPorIngredientesGlobal = async (req: Request, res: Resp
     const agrupacion = await Bocadillo.aggregate([
       {
         $project: {
-          tamano: 1,
-          tipoPan: 1,
           ingredientes: 1,
           ingredientesKey: {
             $reduce: {
@@ -363,11 +361,7 @@ export const getAgrupacionPorIngredientesGlobal = async (req: Request, res: Resp
       },
       {
         $group: {
-          _id: {
-            tamano: '$tamano',
-            tipoPan: '$tipoPan',
-            ingredientesKey: '$ingredientesKey'
-          },
+          _id: '$ingredientesKey',
           count: { $sum: 1 },
           ingredientes: { $first: { $sortArray: { input: '$ingredientes', sortBy: 1 } } }
         }
@@ -376,8 +370,6 @@ export const getAgrupacionPorIngredientesGlobal = async (req: Request, res: Resp
       { $limit: 10 },
       {
         $project: {
-          tamano: '$_id.tamano',
-          tipoPan: '$_id.tipoPan',
           ingredientes: 1,
           count: 1,
           _id: 0
@@ -414,8 +406,6 @@ export const getAgrupacionPorIngredientesUsuario = async (req: Request, res: Res
       { $match: { userId: new mongoose.Types.ObjectId(user.userId) } },
       {
         $project: {
-          tamano: 1,
-          tipoPan: 1,
           ingredientes: 1,
           ingredientesKey: {
             $reduce: {
@@ -434,11 +424,7 @@ export const getAgrupacionPorIngredientesUsuario = async (req: Request, res: Res
       },
       {
         $group: {
-          _id: {
-            tamano: '$tamano',
-            tipoPan: '$tipoPan',
-            ingredientesKey: '$ingredientesKey'
-          },
+          _id: '$ingredientesKey',
           count: { $sum: 1 },
           ingredientes: { $first: { $sortArray: { input: '$ingredientes', sortBy: 1 } } }
         }
@@ -447,8 +433,6 @@ export const getAgrupacionPorIngredientesUsuario = async (req: Request, res: Res
       { $limit: 10 },
       {
         $project: {
-          tamano: '$_id.tamano',
-          tipoPan: '$_id.tipoPan',
           ingredientes: 1,
           count: 1,
           _id: 0
