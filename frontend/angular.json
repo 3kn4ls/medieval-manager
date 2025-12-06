@@ -31,8 +31,14 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
+              "src/favicon.svg",
+              "src/favicon-96x96.png",
+              "src/apple-touch-icon.png",
+              "src/web-app-manifest-192x192.png",
+              "src/web-app-manifest-512x512.png",
               "src/assets",
               "src/manifest.json",
+              "src/site.webmanifest",
               "src/service-worker.js"
             ],
             "styles": ["src/styles.css"],
