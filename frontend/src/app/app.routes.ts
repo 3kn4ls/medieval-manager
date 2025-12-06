@@ -44,6 +44,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'estadisticas',
+    loadComponent: () =>
+      import('./pages/estadisticas/estadisticas.component').then((m) => m.EstadisticasComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: '/orders',
     pathMatch: 'full',

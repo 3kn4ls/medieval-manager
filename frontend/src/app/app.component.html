@@ -37,6 +37,14 @@
       <span class="label">Pagos</span>
     </a>
     <a
+      routerLink="/estadisticas"
+      class="nav-tab"
+      [class.active]="isActive('/estadisticas')"
+    >
+      <span class="icon">📈</span>
+      <span class="label">Estadísticas</span>
+    </a>
+    <a
       *ngIf="isAdmin"
       routerLink="/admin"
       class="nav-tab"

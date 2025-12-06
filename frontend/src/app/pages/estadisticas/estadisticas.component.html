@@ -1,0 +1,133 @@
+<div class="estadisticas-container">
+  <h1>Estadísticas de Bocadillos</h1>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading">
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Estadísticas Generales -->
+  <div *ngIf="!isLoading && estadisticasGenerales" class="stats-overview">
+    <div class="stat-card">
+      <h3>Total Bocadillos (Sistema)</h3>
+      <p class="stat-number">{{ estadisticasGenerales.totalBocadillos }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Mis Bocadillos (Total)</h3>
+      <p class="stat-number">{{ estadisticasGenerales.totalBocadillosUsuario }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Bocadillos esta Semana</h3>
+      <p class="stat-number">{{ estadisticasGenerales.bocadillosSemana }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Mis Bocadillos esta Semana</h3>
+      <p class="stat-number">{{ estadisticasGenerales.bocadillosSemanaUsuario }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Gasto Total</h3>
+      <p class="stat-number">{{ formatCurrency(estadisticasGenerales.gastoTotalUsuario) }}</p>
+    </div>
+  </div>
+
+  <!-- Último Bocadillo del Usuario -->
+  <section *ngIf="ultimoBocadillo" class="ultimo-bocadillo-section">
+    <h2>Mi Último Bocadillo</h2>
+    <div class="ultimo-bocadillo-card">
+      <div class="bocadillo-info">
+        <p class="bocadillo-description">{{ formatBocadillo(ultimoBocadillo) }}</p>
+        <p class="bocadillo-date">Pedido el: {{ formatDate(ultimoBocadillo.fechaCreacion) }}</p>
+        <p *ngIf="ultimoBocadillo.precio" class="bocadillo-price">
+          Precio: {{ formatCurrency(ultimoBocadillo.precio) }}
+          <span [class.pagado]="ultimoBocadillo.pagado" [class.pendiente]="!ultimoBocadillo.pagado">
+            ({{ ultimoBocadillo.pagado ? 'Pagado' : 'Pendiente' }})
+          </span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tendencia Semanal -->
+  <section *ngIf="estadisticasGenerales && estadisticasGenerales.tendenciaSemanal.length > 0" class="chart-section">
+    <h2>Tendencia Semanal (Últimas 8 semanas)</h2>
+    <div class="chart-container">
+      <canvas #tendenciaChart></canvas>
+    </div>
+  </section>
+
+  <!-- Estadísticas Globales -->
+  <section *ngIf="estadisticasGlobales" class="estadisticas-globales">
+    <h2>Estadísticas Globales (Todos los Usuarios)</h2>
+
+    <div class="charts-grid">
+      <!-- Top Ingredientes Global -->
+      <div *ngIf="estadisticasGlobales.topIngredientes.length > 0" class="chart-card">
+        <h3>Top 10 Ingredientes Más Pedidos</h3>
+        <div class="chart-container">
+          <canvas #ingredientesGlobalChart></canvas>
+        </div>
+      </div>
+
+      <!-- Top Bocatas Predefinidas Global -->
+      <div *ngIf="estadisticasGlobales.topBocatasPredefinidas.length > 0" class="chart-card">
+        <h3>Bocatas Predefinidas Más Populares</h3>
+        <div class="chart-container">
+          <canvas #bocatasGlobalChart></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mis Estadísticas -->
+  <section *ngIf="estadisticasUsuario" class="estadisticas-usuario">
+    <h2>Mis Estadísticas Personales</h2>
+
+    <div class="user-stats-summary">
+      <p>Has pedido un total de <strong>{{ estadisticasUsuario.totalBocadillos }}</strong> bocadillos</p>
+    </div>
+
+    <div class="charts-grid">
+      <!-- Top Ingredientes Usuario -->
+      <div *ngIf="estadisticasUsuario.topIngredientes.length > 0" class="chart-card">
+        <h3>Mis Ingredientes Favoritos</h3>
+        <div class="chart-container-horizontal">
+          <canvas #ingredientesUsuarioChart></canvas>
+        </div>
+      </div>
+
+      <!-- Top Bocatas Predefinidas Usuario -->
+      <div *ngIf="estadisticasUsuario.topBocatasPredefinidas.length > 0" class="chart-card">
+        <h3>Mis Bocatas Predefinidas Favoritas</h3>
+        <div class="chart-container">
+          <canvas #bocatasUsuarioChart></canvas>
+        </div>
+      </div>
+
+      <!-- Distribución por Tamaño Usuario -->
+      <div *ngIf="estadisticasUsuario.distribucionTamano.length > 0" class="chart-card">
+        <h3>Distribución por Tamaño</h3>
+        <div class="chart-container-small">
+          <canvas #tamanoUsuarioChart></canvas>
+        </div>
+      </div>
+
+      <!-- Distribución por Tipo de Pan Usuario -->
+      <div *ngIf="estadisticasUsuario.distribucionPan.length > 0" class="chart-card">
+        <h3>Distribución por Tipo de Pan</h3>
+        <div class="chart-container-small">
+          <canvas #panUsuarioChart></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mensaje si no hay datos -->
+  <div *ngIf="!isLoading && !errorMessage && !ultimoBocadillo && !estadisticasGlobales && !estadisticasUsuario" class="no-data">
+    <p>No hay estadísticas disponibles aún. ¡Empieza a pedir bocadillos!</p>
+  </div>
+</div>
