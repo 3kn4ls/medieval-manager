@@ -410,7 +410,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
     return value.toFixed(2) + '€';
   }
 
-  formatDate(date: Date | string): string {
+  formatDate(date: Date | string | undefined): string {
+    if (!date) {
+      return 'Sin fecha';
+    }
     const d = new Date(date);
     return d.toLocaleDateString('es-ES', {
       year: 'numeric',
