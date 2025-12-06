@@ -80,6 +80,14 @@
           <canvas #bocatasGlobalChart></canvas>
         </div>
       </div>
+
+      <!-- Agrupación por Ingredientes Global -->
+      <div *ngIf="agrupacionGlobal.length > 0" class="chart-card">
+        <h3>Top 10 Combinaciones Más Pedidas</h3>
+        <div class="chart-container">
+          <canvas #agrupacionGlobalChart></canvas>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -121,6 +129,14 @@
         <h3>Distribución por Tipo de Pan</h3>
         <div class="chart-container-small">
           <canvas #panUsuarioChart></canvas>
+        </div>
+      </div>
+
+      <!-- Agrupación por Ingredientes Usuario -->
+      <div *ngIf="agrupacionUsuario.length > 0" class="chart-card">
+        <h3>Mis Combinaciones Más Pedidas</h3>
+        <div class="chart-container-horizontal">
+          <canvas #agrupacionUsuarioChart></canvas>
         </div>
       </div>
     </div>

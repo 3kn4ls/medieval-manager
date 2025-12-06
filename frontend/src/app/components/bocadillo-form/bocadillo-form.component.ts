@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BocadilloService } from '../../services/bocadillo.service';
 import { AuthService } from '../../services/auth.service';
+import { EstadisticasService } from '../../services/estadisticas.service';
 import {
   TamanoBocadillo,
   TipoPan,
@@ -21,6 +22,7 @@ export class BocadilloFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private bocadilloService = inject(BocadilloService);
   private authService = inject(AuthService);
+  private estadisticasService = inject(EstadisticasService);
 
   bocadilloCreated = output<Bocadillo>();
   bocadilloUpdated = output<Bocadillo>();
@@ -34,6 +36,7 @@ export class BocadilloFormComponent implements OnInit {
   ingredienteInput = '';
   showIngredientesSuggestions = false;
   isSubmitting = false;
+  isLoadingLastBocadillo = false;
   errorMessage = '';
   userName: string = '';
 
@@ -250,5 +253,36 @@ export class BocadilloFormComponent implements OnInit {
       tamano === TamanoBocadillo.GRANDE &&
       (tipoPan === TipoPan.INTEGRAL || tipoPan === TipoPan.SEMILLAS)
     );
+  }
+
+  loadLastBocadillo() {
+    if (this.isEditMode()) {
+      return;
+    }
+
+    this.isLoadingLastBocadillo = true;
+    this.errorMessage = '';
+
+    this.estadisticasService.getUltimoBocadilloUsuario().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const ultimoBocadillo = response.data;
+          this.form.patchValue({
+            tamano: ultimoBocadillo.tamano,
+            tipoPan: ultimoBocadillo.tipoPan,
+            bocataPredefinido: ultimoBocadillo.bocataPredefinido || '',
+          });
+          this.ingredientesSeleccionados = [...ultimoBocadillo.ingredientes];
+        } else {
+          this.errorMessage = 'No se encontró ningún bocadillo anterior';
+        }
+        this.isLoadingLastBocadillo = false;
+      },
+      error: (error) => {
+        console.error('Error cargando último bocadillo:', error);
+        this.errorMessage = 'Error al cargar el último bocadillo';
+        this.isLoadingLastBocadillo = false;
+      },
+    });
   }
 }

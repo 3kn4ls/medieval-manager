@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EstadisticasService, EstadisticasGlobales, EstadisticasUsuario, EstadisticasGenerales } from '../../services/estadisticas.service';
+import { EstadisticasService, EstadisticasGlobales, EstadisticasUsuario, EstadisticasGenerales, AgrupacionIngredientes } from '../../services/estadisticas.service';
 import { Bocadillo } from '../../models/bocadillo.model';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
@@ -18,8 +18,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
 
   @ViewChild('ingredientesGlobalChart') ingredientesGlobalCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('bocatasGlobalChart') bocatasGlobalCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('agrupacionGlobalChart') agrupacionGlobalCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('ingredientesUsuarioChart') ingredientesUsuarioCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('bocatasUsuarioChart') bocatasUsuarioCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('agrupacionUsuarioChart') agrupacionUsuarioCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('tamanoUsuarioChart') tamanoUsuarioCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('panUsuarioChart') panUsuarioCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('tendenciaChart') tendenciaCanvas?: ElementRef<HTMLCanvasElement>;
@@ -28,6 +30,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
   estadisticasGlobales: EstadisticasGlobales | null = null;
   estadisticasUsuario: EstadisticasUsuario | null = null;
   estadisticasGenerales: EstadisticasGenerales | null = null;
+  agrupacionGlobal: AgrupacionIngredientes[] = [];
+  agrupacionUsuario: AgrupacionIngredientes[] = [];
 
   isLoading = false;
   errorMessage = '';
@@ -99,6 +103,32 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
         console.error('Error cargando estadísticas generales:', error);
         this.errorMessage = 'Error cargando estadísticas generales';
         this.isLoading = false;
+      },
+    });
+
+    // Cargar agrupación global por ingredientes
+    this.estadisticasService.getAgrupacionIngredientesGlobal().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.agrupacionGlobal = response.data;
+          setTimeout(() => this.createAgrupacionGlobalChart(), 100);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando agrupación global:', error);
+      },
+    });
+
+    // Cargar agrupación del usuario por ingredientes
+    this.estadisticasService.getAgrupacionIngredientesUsuario().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.agrupacionUsuario = response.data;
+          setTimeout(() => this.createAgrupacionUsuarioChart(), 100);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando agrupación de usuario:', error);
       },
     });
   }
@@ -377,6 +407,125 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
         };
         this.charts.push(new Chart(ctx, config));
       }
+    }
+  }
+
+  createAgrupacionGlobalChart() {
+    if (!this.agrupacionGlobalCanvas || this.agrupacionGlobal.length === 0) return;
+
+    const ctx = this.agrupacionGlobalCanvas.nativeElement.getContext('2d');
+    if (ctx) {
+      const labels = this.agrupacionGlobal.map(item => {
+        const tamano = item.tamano === 'normal' ? 'N' : 'G';
+        const pan = item.tipoPan === 'normal' ? 'N' : (item.tipoPan === 'integral' ? 'I' : 'S');
+        const ingredientes = item.ingredientes.slice(0, 3).join(', ') + (item.ingredientes.length > 3 ? '...' : '');
+        return `${tamano}/${pan}: ${ingredientes}`;
+      });
+
+      const config: ChartConfiguration = {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Veces pedido',
+            data: this.agrupacionGlobal.map(item => item.count),
+            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const item = this.agrupacionGlobal[context.dataIndex];
+                  return [
+                    `Pedidos: ${item.count}`,
+                    `Tamaño: ${item.tamano === 'normal' ? 'Normal' : 'Grande'}`,
+                    `Pan: ${item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas')}`,
+                    `Ingredientes: ${item.ingredientes.join(', ')}`
+                  ];
+                }
+              }
+            }
+          },
+        },
+      };
+      this.charts.push(new Chart(ctx, config));
+    }
+  }
+
+  createAgrupacionUsuarioChart() {
+    if (!this.agrupacionUsuarioCanvas || this.agrupacionUsuario.length === 0) return;
+
+    const ctx = this.agrupacionUsuarioCanvas.nativeElement.getContext('2d');
+    if (ctx) {
+      const labels = this.agrupacionUsuario.map(item => {
+        const tamano = item.tamano === 'normal' ? 'N' : 'G';
+        const pan = item.tipoPan === 'normal' ? 'N' : (item.tipoPan === 'integral' ? 'I' : 'S');
+        const ingredientes = item.ingredientes.slice(0, 3).join(', ') + (item.ingredientes.length > 3 ? '...' : '');
+        return `${tamano}/${pan}: ${ingredientes}`;
+      });
+
+      const config: ChartConfiguration = {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Veces pedido',
+            data: this.agrupacionUsuario.map(item => item.count),
+            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 1,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const item = this.agrupacionUsuario[context.dataIndex];
+                  return [
+                    `Pedidos: ${item.count}`,
+                    `Tamaño: ${item.tamano === 'normal' ? 'Normal' : 'Grande'}`,
+                    `Pan: ${item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas')}`,
+                    `Ingredientes: ${item.ingredientes.join(', ')}`
+                  ];
+                }
+              }
+            }
+          },
+        },
+      };
+      this.charts.push(new Chart(ctx, config));
     }
   }
 

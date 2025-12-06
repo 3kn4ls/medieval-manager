@@ -8,6 +8,18 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Botón para cargar último bocadillo -->
+    <div class="form-group" *ngIf="!isEditMode()">
+      <button
+        type="button"
+        class="btn btn-outline-primary btn-load-last"
+        (click)="loadLastBocadillo()"
+        [disabled]="isLoadingLastBocadillo || isSubmitting"
+      >
+        {{ isLoadingLastBocadillo ? 'Cargando...' : 'Seleccionar Último Bocadillo' }}
+      </button>
+    </div>
+
     <!-- Bocata Predefinido -->
     <div class="form-group">
       <label for="bocataPredefinido">Bocata Predefinido (Opcional)</label>

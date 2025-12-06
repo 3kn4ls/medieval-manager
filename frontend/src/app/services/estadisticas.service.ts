@@ -54,6 +54,13 @@ export interface EstadisticasGenerales {
   tendenciaSemanal: TendenciaSemanal[];
 }
 
+export interface AgrupacionIngredientes {
+  tamano: string;
+  tipoPan: string;
+  ingredientes: string[];
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -82,6 +89,18 @@ export class EstadisticasService {
   getEstadisticasGenerales(): Observable<ApiResponse<EstadisticasGenerales>> {
     return this.http.get<ApiResponse<EstadisticasGenerales>>(
       `${this.apiUrl}/estadisticas/generales`
+    );
+  }
+
+  getAgrupacionIngredientesGlobal(): Observable<ApiResponse<AgrupacionIngredientes[]>> {
+    return this.http.get<ApiResponse<AgrupacionIngredientes[]>>(
+      `${this.apiUrl}/estadisticas/agrupacion-ingredientes-global`
+    );
+  }
+
+  getAgrupacionIngredientesUsuario(): Observable<ApiResponse<AgrupacionIngredientes[]>> {
+    return this.http.get<ApiResponse<AgrupacionIngredientes[]>>(
+      `${this.apiUrl}/estadisticas/agrupacion-ingredientes-usuario`
     );
   }
 }
