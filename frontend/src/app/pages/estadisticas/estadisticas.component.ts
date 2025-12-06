@@ -415,12 +415,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
 
     const ctx = this.agrupacionGlobalCanvas.nativeElement.getContext('2d');
     if (ctx) {
-      const labels = this.agrupacionGlobal.map(item => {
-        const tamano = item.tamano === 'normal' ? 'Normal' : 'Grande';
-        const pan = item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas');
-        const ingredientes = item.ingredientes.join(', ');
-        return `${tamano} / ${pan} / ${ingredientes}`;
-      });
+      const labels = this.agrupacionGlobal.map(item => item.ingredientes.join(', '));
 
       const config: ChartConfiguration = {
         type: 'pie',
@@ -470,12 +465,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
 
     const ctx = this.agrupacionUsuarioCanvas.nativeElement.getContext('2d');
     if (ctx) {
-      const labels = this.agrupacionUsuario.map(item => {
-        const tamano = item.tamano === 'normal' ? 'N' : 'G';
-        const pan = item.tipoPan === 'normal' ? 'N' : (item.tipoPan === 'integral' ? 'I' : 'S');
-        const ingredientes = item.ingredientes.slice(0, 3).join(', ') + (item.ingredientes.length > 3 ? '...' : '');
-        return `${tamano}/${pan}: ${ingredientes}`;
-      });
+      const labels = this.agrupacionUsuario.map(item => item.ingredientes.join(', '));
 
       const config: ChartConfiguration = {
         type: 'bar',
@@ -509,12 +499,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit {
               callbacks: {
                 label: (context) => {
                   const item = this.agrupacionUsuario[context.dataIndex];
-                  return [
-                    `Pedidos: ${item.count}`,
-                    `Tamaño: ${item.tamano === 'normal' ? 'Normal' : 'Grande'}`,
-                    `Pan: ${item.tipoPan === 'normal' ? 'Normal' : (item.tipoPan === 'integral' ? 'Integral' : 'Semillas')}`,
-                    `Ingredientes: ${item.ingredientes.join(', ')}`
-                  ];
+                  return `${item.count} pedidos`;
                 }
               }
             }

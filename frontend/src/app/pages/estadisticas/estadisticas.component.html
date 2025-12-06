@@ -73,14 +73,6 @@
         </div>
       </div>
 
-      <!-- Top Bocatas Predefinidas Global -->
-      <div *ngIf="estadisticasGlobales.topBocatasPredefinidas.length > 0" class="chart-card">
-        <h3>Bocatas Predefinidas Más Populares</h3>
-        <div class="chart-container">
-          <canvas #bocatasGlobalChart></canvas>
-        </div>
-      </div>
-
       <!-- Agrupación por Ingredientes Global -->
       <div *ngIf="agrupacionGlobal.length > 0" class="chart-card">
         <h3>Top 10 Combinaciones Más Pedidas</h3>
@@ -105,14 +97,6 @@
         <h3>Mis Ingredientes Favoritos</h3>
         <div class="chart-container-horizontal">
           <canvas #ingredientesUsuarioChart></canvas>
-        </div>
-      </div>
-
-      <!-- Top Bocatas Predefinidas Usuario -->
-      <div *ngIf="estadisticasUsuario.topBocatasPredefinidas.length > 0" class="chart-card">
-        <h3>Mis Bocatas Predefinidas Favoritas</h3>
-        <div class="chart-container">
-          <canvas #bocatasUsuarioChart></canvas>
         </div>
       </div>
 
