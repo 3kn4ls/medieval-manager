@@ -80,7 +80,7 @@ Exit codes:
 - `3` — tool calling fails. Switch model (deepseek/kimi/glm/qwen) or fall back
   to JSON-mode prompt stuffing.
 
-## Run as a service (systemd)
+## Run as a service (systemd, Linux)
 
 `/etc/systemd/system/ai-gateway.service`:
 
@@ -107,6 +107,40 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now ai-gateway
 sudo journalctl -u ai-gateway -f
 ```
+
+## Run as a service (Windows)
+
+There is a one-shot PowerShell script that installs the gateway as a real
+Windows service via NSSM, so it survives reboots:
+
+```powershell
+# Open PowerShell as Administrator, cd to the ai-gateway folder, then:
+powershell -ExecutionPolicy Bypass -File .\scripts\install-windows-service.ps1
+```
+
+What it does:
+
+- Installs NSSM via `winget` if missing.
+- Validates `.env` (must have a real `GATEWAY_API_KEY`).
+- Runs `npm install` if needed.
+- Registers a service `AIGateway` with `SERVICE_DELAYED_AUTO_START` and
+  auto-restart on crash (5s backoff).
+- Writes rotating logs to `gateway.log` / `gateway.err.log`.
+- Starts it and smoke-tests `/healthz`.
+- Verifies the Tailscale Funnel mapping (re-applies if missing).
+
+Manage:
+
+```powershell
+Get-Service AIGateway
+Restart-Service AIGateway
+nssm edit AIGateway              # GUI to tweak config
+nssm remove AIGateway confirm    # uninstall
+```
+
+Reboot test: `Restart-Computer`, then `Get-Service AIGateway` should be
+`Running` and `curl.exe https://your-host.tail-xxxx.ts.net/ai-gateway/healthz`
+should return `{"ok":true}`.
 
 ## Security notes
 
