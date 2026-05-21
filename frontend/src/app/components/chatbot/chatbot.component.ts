@@ -141,11 +141,13 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
   enviar() {
     this.marcarAnimacionComoVista();
-    if (this.speech.isListening()) {
-      this.speech.stopListening();
-    }
     const texto = this.inputValue().trim();
     if (!texto || this.enviando() || this.sinCuota()) return;
+    // abortListening (no stopListening) para que el effect deje de repoblar
+    // el input con el último onresult que Chrome emite al cerrar la sesión.
+    if (this.speech.isListening()) {
+      this.speech.abortListening();
+    }
 
     const userMsg: ChatMensajeUI = {
       id: `u_${Date.now()}`,

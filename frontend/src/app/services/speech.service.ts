@@ -146,20 +146,25 @@ export class SpeechService {
     recognition.interimResults = true;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      // Reconstruimos el transcript completo desde cero en cada evento.
+      // Chrome (sobre todo con continuous=true) a veces reemite eventos con
+      // resultIndex apuntando a resultados ya finalizados, lo que con un
+      // acumulador (update prev + delta) duplica el texto. event.results
+      // contiene SIEMPRE el estado completo de la sesión, así que basta con
+      // recorrerlo entero y hacer .set().
+      const finalParts: string[] = [];
       let interim = '';
-      let finalDelta = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         const transcript = result[0].transcript;
         if (result.isFinal) {
-          finalDelta += transcript;
+          finalParts.push(transcript);
         } else {
           interim += transcript;
         }
       }
-      if (finalDelta) {
-        this.finalTranscript.update(prev => prev + finalDelta);
-      }
+      const finalText = finalParts.join(' ').replace(/\s+/g, ' ').trim();
+      this.finalTranscript.set(finalText);
       this.interimTranscript.set(interim);
     };
 
