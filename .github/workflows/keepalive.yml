@@ -1,0 +1,46 @@
+name: Keep Render backend warm
+
+# Mantiene despierto el web service de Render (plan free duerme tras ~15 min
+# de inactividad) para garantizar que el cron in-process del
+# notificationScheduler (jueves 11:00 Madrid) tenga el dyno arriba, y que
+# además el resto del jueves esté operativo para los usuarios.
+#
+# GitHub Actions cron solo entiende UTC. Madrid es UTC+1 (invierno) / UTC+2
+# (verano). El jueves Madrid se solapa así con UTC:
+#   - Invierno (CET):  UTC mié 23:00 - UTC jue 22:59
+#   - Verano  (CEST): UTC mié 22:00 - UTC jue 21:59
+# Por eso pingueamos:
+#   1) Miércoles 22:00-23:50 UTC para cubrir el inicio del jueves Madrid
+#   2) Todo el jueves UTC (00:00-23:50)
+# Cobertura efectiva: todo el jueves Madrid + un poco antes y después.
+
+on:
+  schedule:
+    # Cada 10 min, miércoles 22:00-23:50 UTC (early jueves Madrid)
+    - cron: '*/10 22-23 * * 3'
+    # Cada 10 min, todo el jueves UTC
+    - cron: '*/10 * * * 4'
+  workflow_dispatch:  # Trigger manual para pruebas
+
+# Permitir solo una ejecución en curso, cancelar las anteriores si se solapan
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /health
+        run: |
+          # --max-time 90: Render free puede tardar ~50s en hacer cold start
+          # --retry-all-errors: reintenta también ante 5xx/conexión cerrada
+          curl --fail \
+               --silent \
+               --show-error \
+               --max-time 90 \
+               --retry 3 \
+               --retry-delay 15 \
+               --retry-all-errors \
+               https://bocadillos-backend.onrender.com/health

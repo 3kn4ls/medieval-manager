@@ -7,17 +7,44 @@ import { getTargetWeek } from '../utils/dateUtils';
 let notificationSent = false;
 let currentWeek = 0;
 
+const MADRID_TZ = 'Europe/Madrid';
+const WEEKDAY_MAP: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+};
+
+/**
+ * Devuelve el día de la semana y la hora en zona horaria Europe/Madrid.
+ * Necesario porque el servidor Render corre en UTC y `Date#getHours()` /
+ * `Date#getDay()` devolverían la hora UTC, no la hora local española.
+ */
+function getMadridTime(date: Date): { dayOfWeek: number; hours: number } {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: MADRID_TZ,
+    weekday: 'short',
+    hour: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const weekdayStr = parts.find(p => p.type === 'weekday')?.value ?? 'Sun';
+  const hourStr = parts.find(p => p.type === 'hour')?.value ?? '0';
+
+  return {
+    dayOfWeek: WEEKDAY_MAP[weekdayStr] ?? 0,
+    hours: parseInt(hourStr, 10),
+  };
+}
+
 /**
  * Inicializa el scheduler de notificaciones
- * Revisa cada hora si es jueves a las 11:00 (6 horas antes del cierre)
- * y envía una notificación a todos los usuarios
+ * Revisa cada hora si es jueves a las 11:00 hora de Madrid (6 horas antes
+ * del cierre) y envía una notificación a todos los usuarios.
  */
 export function initNotificationScheduler() {
-  // Ejecutar cada hora
+  // Ejecutar cada hora en el minuto 0 (UTC; la condición de hora la
+  // evaluamos manualmente en hora Madrid más abajo).
   cron.schedule('0 * * * *', async () => {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 = Domingo, 4 = Jueves
-    const hours = now.getHours();
+    const { dayOfWeek, hours } = getMadridTime(now);
 
     // Obtener número de semana objetivo (la del próximo viernes)
     const { week, year } = getTargetWeek(now);
@@ -69,7 +96,7 @@ export function initNotificationScheduler() {
     }
   });
 
-  console.log('Notification scheduler initialized - Will send reminders on Thursdays at 11:00');
+  console.log('Notification scheduler initialized - Will send reminders on Thursdays at 11:00 Europe/Madrid');
 }
 
 /**
