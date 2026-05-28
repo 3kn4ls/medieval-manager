@@ -360,6 +360,7 @@ const TIPO_PAN_LABELS: Record<string, string> = {
   normal: 'Normal',
   integral: 'Integral',
   semillas: 'Semillas',
+  tupper: 'Tupper',
 };
 
 // Exportar pedidos de la semana en curso en formato WhatsApp (público, sin auth)

@@ -9,6 +9,7 @@ export enum TipoPan {
   NORMAL = 'normal',
   INTEGRAL = 'integral',
   SEMILLAS = 'semillas',
+  TUPPER = 'tupper',
 }
 
 export interface IBocadillo extends Document {

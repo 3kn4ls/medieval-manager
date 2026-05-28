@@ -421,7 +421,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
         type: 'object',
         properties: {
           tamano: { type: 'string', enum: ['normal', 'grande'] },
-          tipoPan: { type: 'string', enum: ['normal', 'integral', 'semillas'] },
+          tipoPan: { type: 'string', enum: ['normal', 'integral', 'semillas', 'tupper'] },
           ingredientes: {
             type: 'array',
             items: { type: 'string' },
@@ -448,7 +448,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
         properties: {
           bocadilloId: { type: 'string', description: 'ID del bocadillo a editar (debe ser del usuario actual).' },
           tamano: { type: 'string', enum: ['normal', 'grande'] },
-          tipoPan: { type: 'string', enum: ['normal', 'integral', 'semillas'] },
+          tipoPan: { type: 'string', enum: ['normal', 'integral', 'semillas', 'tupper'] },
           ingredientes: {
             type: 'array',
             items: { type: 'string' },

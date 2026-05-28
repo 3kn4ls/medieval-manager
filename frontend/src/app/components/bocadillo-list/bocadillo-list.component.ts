@@ -109,6 +109,7 @@ export class BocadilloListComponent implements OnInit {
       normal: 'Normal',
       integral: 'Integral',
       semillas: 'Semillas',
+      tupper: 'Tupper',
     };
     return labels[tipoPan] || tipoPan;
   }
