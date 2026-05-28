@@ -3,7 +3,7 @@
  */
 
 export type TamanoBocadillo = 'normal' | 'grande';
-export type TipoPan = 'normal' | 'integral' | 'semillas';
+export type TipoPan = 'normal' | 'integral' | 'semillas' | 'tupper';
 
 export interface PropuestaPedido {
   tamano: TamanoBocadillo;

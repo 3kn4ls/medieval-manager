@@ -19,7 +19,7 @@ export const aceptarRecomendacionSchema = z.object({
   propuestaPedido: z.object({
     nombre: z.string(),
     tamano: z.enum(['normal', 'grande']),
-    tipoPan: z.enum(['normal', 'integral', 'semillas']),
+    tipoPan: z.enum(['normal', 'integral', 'semillas', 'tupper']),
     ingredientes: z.array(z.string()).min(1, 'Debe tener al menos un ingrediente'),
   }),
 });
