@@ -1,0 +1,494 @@
+/* ========================================
+   OCR PRICES PAGE
+   ======================================== */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom) + 32px);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background: linear-gradient(135deg, #0075FF 0%, #00C6FF 100%);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.08);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   STATS ROW
+   ======================================== */
+
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  flex: 1;
+  background: var(--neutral-50);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-warning {
+  background: #FFF3E0;
+  border-color: #FFA726;
+}
+
+.stat-success {
+  background: #E6FAF1;
+  border-color: #00D06C;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ========================================
+   DATA TABLE
+   ======================================== */
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+.name-cell {
+  font-weight: 600;
+}
+
+.est-cell {
+  color: var(--text-tertiary) !important;
+  font-size: 0.8rem;
+}
+
+.price-cell {
+  font-weight: 600;
+}
+
+.price-cell.has-price {
+  color: var(--brand-primary);
+}
+
+tr.no-price {
+  background: #FFFBF0;
+}
+
+/* ========================================
+   CAMERA
+   ======================================== */
+
+.camera-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.camera-video {
+  width: 100%;
+  max-width: 500px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-primary);
+  background: #000;
+}
+
+.camera-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.capture-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.capture-btn {
+  min-width: 220px;
+}
+
+.divider-text {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.file-label {
+  cursor: pointer;
+  min-width: 220px;
+  text-align: center;
+}
+
+/* ========================================
+   IMAGE PREVIEW
+   ======================================== */
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.preview-img {
+  width: 100%;
+  max-width: 500px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-primary);
+  object-fit: contain;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* ========================================
+   ANALYZING / APPLYING SPINNER
+   ======================================== */
+
+.analyzing-card {
+  text-align: center;
+}
+
+.analyzing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--neutral-200);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   REVIEW TABLE
+   ======================================== */
+
+.review-table th:last-child,
+.review-table td:last-child {
+  min-width: 110px;
+}
+
+.bocadillo-cell {
+  font-size: 0.8rem;
+  color: var(--text-secondary) !important;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conf-cell {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.sugerido-cell {
+  color: var(--text-tertiary) !important;
+  font-size: 0.85rem;
+}
+
+.price-old-cell {
+  color: var(--text-tertiary) !important;
+  font-size: 0.8rem;
+}
+
+.edit-cell {
+  padding: 4px 8px !important;
+}
+
+.price-input {
+  width: 90px;
+  padding: 8px 10px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+  color: var(--text-primary);
+  background: white;
+  transition: border-color 150ms ease;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.12);
+}
+
+.price-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Row highlights */
+.row-sugerido {
+  background: #f6fef6;
+}
+
+.row-no-sugerido {
+  background: #FFFBF0;
+}
+
+.row-modificado {
+  background: #E6F2FF;
+}
+
+.row-modificado .price-input {
+  border-color: var(--brand-primary);
+  background: #FAFDFF;
+}
+
+/* ========================================
+   REVIEW SUMMARY
+   ======================================== */
+
+.review-summary {
+  display: flex;
+  gap: 24px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-primary);
+  margin-bottom: 8px;
+}
+
+.summary-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+.summary-value.modified {
+  color: var(--warning);
+}
+
+.summary-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* ========================================
+   APPLIED STATE
+   ======================================== */
+
+.applied-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.applied-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--success);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.applied-header h2 {
+  margin: 0 !important;
+  color: var(--success-dark);
+}
+
+.results-table {
+  margin-top: 8px;
+}
+
+.row-updated {
+  background: #E6FAF1;
+}
+
+.price-new {
+  color: var(--success-dark);
+  font-weight: 700;
+}
+
+.price-old {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  font-size: 0.8rem;
+}
+
+/* ========================================
+   BIG CONFIRM BUTTON
+   ======================================== */
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+  min-height: 56px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    padding: 24px;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .stats-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .data-table {
+    font-size: 0.75rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 6px 4px;
+  }
+
+  .bocadillo-cell {
+    max-width: 140px;
+  }
+
+  .price-input {
+    width: 72px;
+    font-size: 0.8rem;
+    padding: 6px 6px;
+  }
+
+  .review-summary {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .preview-actions,
+  .camera-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .preview-actions .btn,
+  .camera-actions .btn {
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

@@ -240,6 +240,10 @@ export class AdminComponent implements OnInit {
     this.router.navigate(['/payments']);
   }
 
+  goToOcrPrices(): void {
+    this.router.navigate(['/admin/ocr-precios']);
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

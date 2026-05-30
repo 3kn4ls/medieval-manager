@@ -17,7 +17,11 @@
       "Bash(node /tmp/test-mock.js)",
       "Bash(npx tsc *)",
       "Bash(npx ng *)",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(git ls-tree *)",
+      "Bash(dir C:wsmedieval-manager *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "WebSearch"
     ]
   }
 }

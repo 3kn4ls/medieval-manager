@@ -1,0 +1,259 @@
+<div class="container slide-up">
+  <header class="header">
+    <div class="header-content">
+      <h1>OCR de Precios</h1>
+    </div>
+    <nav class="nav">
+      <button (click)="goBack()" class="back-btn">&larr; Volver al Panel</button>
+    </nav>
+  </header>
+
+  <!-- === STEP: CAPTURE === -->
+  <ng-container *ngIf="step === 'capture'">
+    <div class="card">
+      <h2>Bocadillos de la Semana</h2>
+      <p class="subtitle">Estos son los pedidos que necesitan precio. Toma una foto de la lista de precios escrita a mano.</p>
+
+      <div class="loading" *ngIf="isLoading">Cargando pedidos...</div>
+
+      <ng-container *ngIf="!isLoading">
+        <div class="alert alert-info" *ngIf="bocadillos.length === 0">
+          No hay bocadillos en la semana actual. No hay precios que asignar.
+        </div>
+
+        <ng-container *ngIf="bocadillos.length > 0">
+          <div class="stats-row">
+            <div class="stat">
+              <span class="stat-value">{{ bocadillos.length }}</span>
+              <span class="stat-label">Total pedidos</span>
+            </div>
+            <div class="stat stat-warning">
+              <span class="stat-value">{{ bocadillosSinPrecio.length }}</span>
+              <span class="stat-label">Sin precio</span>
+            </div>
+            <div class="stat stat-success" *ngIf="hasPrices">
+              <span class="stat-value">{{ bocadillos.length - bocadillosSinPrecio.length }}</span>
+              <span class="stat-label">Con precio</span>
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Persona</th>
+                <th>Bocadillo</th>
+                <th>Est.</th>
+                <th>Precio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let b of bocadillos" [class.no-price]="!b.precio">
+                <td class="name-cell">{{ b.nombre }}</td>
+                <td>{{ formatBocadillo(b) }}</td>
+                <td class="est-cell">{{ formatCurrency(b.precioEstimado || 0) }}</td>
+                <td class="price-cell" [class.has-price]="b.precio">
+                  {{ b.precio ? formatCurrency(b.precio) : '—' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+      </ng-container>
+    </div>
+
+    <div class="card" *ngIf="bocadillos.length > 0">
+      <h2>Capturar Imagen</h2>
+      <p class="subtitle">Toma una foto clara de la lista de precios escrita a mano. Asegúrate de que haya buena iluminación.</p>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="preview-container" *ngIf="imagenPreviewUrl; else noImage">
+        <img [src]="imagenPreviewUrl" alt="Vista previa" class="preview-img" />
+        <div class="preview-actions">
+          <button class="btn btn-primary" (click)="analizarPrecios()">Analizar Precios</button>
+          <button class="btn btn-secondary" (click)="retomar()">Tomar Otra Foto</button>
+        </div>
+      </div>
+
+      <ng-template #noImage>
+        <div *ngIf="camaraActiva" class="camera-container">
+          <video id="camera-video" autoplay playsinline class="camera-video"></video>
+          <div class="camera-actions">
+            <button class="btn btn-primary" (click)="capturarFoto()">📸 Capturar</button>
+            <button class="btn btn-secondary" (click)="detenerCamara()">Cancelar</button>
+          </div>
+        </div>
+
+        <div *ngIf="!camaraActiva" class="capture-options">
+          <button class="btn btn-primary capture-btn" (click)="abrirCamara()">
+            📷 Usar Cámara
+          </button>
+          <div class="divider-text">o</div>
+          <label class="btn btn-outline-primary file-label">
+            📁 Seleccionar Archivo
+            <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" hidden />
+          </label>
+          <p class="form-text" style="text-align:center; margin-top:12px;">
+            Formatos aceptados: JPEG, PNG. Máximo 10 MB.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: ANALYZING === -->
+  <ng-container *ngIf="step === 'analyzing'">
+    <div class="card analyzing-card">
+      <div class="analyzing-content">
+        <div class="spinner"></div>
+        <h2>Analizando la imagen...</h2>
+        <p class="subtitle">El modelo de IA está leyendo los precios de la foto. Esto puede tardar hasta 60 segundos.</p>
+        <p class="text-muted">No cierres esta página ni navegues a otra.</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: REVIEW === -->
+  <ng-container *ngIf="step === 'review' && resultado">
+    <div class="card">
+      <h2>Revisar y Confirmar Precios</h2>
+      <p class="subtitle">
+        La IA ha sugerido {{ countSugeridos }} precios. Revisa cada uno, ajusta si es necesario, y luego confirma para grabar los precios en los bocadillos.
+      </p>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <!-- Tabla editable de revisión -->
+      <div class="table-wrapper">
+        <table class="data-table review-table">
+          <thead>
+            <tr>
+              <th>Persona</th>
+              <th>Bocadillo</th>
+              <th>Est.</th>
+              <th>Precio Ant.</th>
+              <th>Conf.</th>
+              <th>Precio Sugerido</th>
+              <th>Precio Final</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of reviewRows"
+              [class.row-sugerido]="row.precioSugerido !== null"
+              [class.row-no-sugerido]="row.precioSugerido === null"
+              [class.row-modificado]="tieneCambios(row)"
+            >
+              <td class="name-cell">{{ row.nombre }}</td>
+              <td class="bocadillo-cell">{{ row.bocadilloLabel }}</td>
+              <td class="est-cell">{{ formatCurrency(row.precioEstimado) }}</td>
+              <td class="price-old-cell">
+                {{ row.precioAnterior !== null ? formatCurrency(row.precioAnterior) : '—' }}
+              </td>
+              <td class="conf-cell">{{ confianzaEmoji(row.confianza) }}</td>
+              <td class="sugerido-cell">
+                {{ row.precioSugerido !== null ? formatCurrency(row.precioSugerido) : '—' }}
+              </td>
+              <td class="edit-cell">
+                <input
+                  type="number"
+                  class="price-input"
+                  [ngModel]="row.precioEditado"
+                  (ngModelChange)="row.precioEditado = $event; onPrecioChange(row)"
+                  min="0"
+                  step="0.10"
+                  placeholder="0.00"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resumen -->
+      <div class="review-summary">
+        <div class="summary-stat">
+          <span class="summary-value">{{ countConPrecioAsignado }}</span>
+          <span class="summary-label">precios a aplicar</span>
+        </div>
+        <div class="summary-stat" *ngIf="algunoModificado">
+          <span class="summary-value modified">*</span>
+          <span class="summary-label">precios modificados manualmente</span>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="form-actions">
+        <button class="btn btn-primary btn-lg" (click)="confirmarYAplicar()" [disabled]="countConPrecioAsignado === 0">
+          Confirmar y Grabar {{ countConPrecioAsignado }} Precios
+        </button>
+        <button class="btn btn-secondary" (click)="nuevoAnalisis()">Descartar y Volver</button>
+      </div>
+
+      <!-- Info -->
+      <div class="info-box">
+        <h3>ℹ️ Información</h3>
+        <ul>
+          <li>Los precios <strong>aún no se han guardado</strong>. Revisa cada uno antes de confirmar.</li>
+          <li>{{ '🟢' }} Alta / {{ '🟡' }} Media / {{ '🔴' }} Baja — confianza de la IA en cada asignación.</li>
+          <li>Las filas sin sugerencia (fondo amarillo) son bocadillos que la IA no encontró en la imagen. Puedes asignarles precio manualmente.</li>
+          <li>Las filas modificadas manualmente se marcan con fondo azul claro.</li>
+          <li>Una vez confirmados, los precios se grabarán en los bocadillos de la semana.</li>
+        </ul>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: APPLYING === -->
+  <ng-container *ngIf="step === 'applying'">
+    <div class="card analyzing-card">
+      <div class="analyzing-content">
+        <div class="spinner"></div>
+        <h2>Grabando precios...</h2>
+        <p class="subtitle">Actualizando los bocadillos con los precios confirmados.</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: APPLIED === -->
+  <ng-container *ngIf="step === 'applied' && appliedResult">
+    <div class="card">
+      <div class="applied-header">
+        <span class="applied-check">✓</span>
+        <h2>Precios Guardados Correctamente</h2>
+      </div>
+      <p class="subtitle">
+        Se han actualizado {{ appliedResult.actualizados.length }} bocadillos de la semana {{ appliedResult.semana }} de {{ appliedResult.ano }}.
+      </p>
+
+      <table class="data-table results-table" *ngIf="appliedResult.actualizados.length > 0">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Precio Nuevo</th>
+            <th>Precio Ant.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of appliedResult.actualizados" class="row-updated">
+            <td>{{ item.nombre }}</td>
+            <td class="price-new">{{ formatCurrency(item.precioNuevo) }}</td>
+            <td class="price-old">{{ item.precioAnterior !== null ? formatCurrency(item.precioAnterior) : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-danger" *ngIf="appliedResult.errores.length > 0">
+        <h4>Errores al aplicar</h4>
+        <ul>
+          <li *ngFor="let e of appliedResult.errores">{{ e.bocadilloId }}: {{ e.error }}</li>
+        </ul>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="nuevoAnalisis()">Nuevo Análisis</button>
+        <button class="btn btn-secondary" (click)="goBack()">Volver al Panel</button>
+      </div>
+    </div>
+  </ng-container>
+</div>
