@@ -50,6 +50,12 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: 'admin/ocr-debug',
+    loadComponent: () =>
+      import('./pages/ocr-debug/ocr-debug.component').then((m) => m.OcrDebugComponent),
+    canActivate: [authGuard, adminGuard],
+  },
+  {
     path: 'estadisticas',
     loadComponent: () =>
       import('./pages/estadisticas/estadisticas.component').then((m) => m.EstadisticasComponent),

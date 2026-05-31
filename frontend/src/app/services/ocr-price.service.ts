@@ -70,4 +70,34 @@ export class OcrPriceService {
   applyPrices(asignaciones: OcrApplyItem[]): Observable<OcrApplyResponse> {
     return this.http.post<OcrApplyResponse>(`${this.apiUrl}/admin/ocr-precios/apply`, { asignaciones });
   }
+
+  testOcr(imagen: Blob): Observable<OcrTestResponse> {
+    const formData = new FormData();
+    formData.append('imagen', imagen, 'test.jpg');
+    return this.http.post<OcrTestResponse>(`${this.apiUrl}/admin/ocr-test`, formData);
+  }
+}
+
+export interface OcrPrecioEncontrado {
+  texto: string;
+  precio: number;
+}
+
+export interface OcrTestData {
+  rawResponse: string;
+  textoExtraido: string;
+  preciosEncontrados: OcrPrecioEncontrado[];
+  modeloUsado: string;
+  tiempoMs: number;
+  tokensPrompt?: number;
+  tokensCompletion?: number;
+  tokensTotal?: number;
+  nombreArchivo: string;
+  tamanoBytes: number;
+}
+
+export interface OcrTestResponse {
+  success: boolean;
+  data?: OcrTestData;
+  error?: string;
 }

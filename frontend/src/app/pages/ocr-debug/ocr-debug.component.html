@@ -1,0 +1,135 @@
+<div class="container slide-up">
+  <header class="header">
+    <div class="header-content">
+      <h1>🧪 OCR Debug</h1>
+      <span class="badge">Test</span>
+    </div>
+    <nav class="nav">
+      <button (click)="goBack()" class="back-btn">&larr; Panel</button>
+    </nav>
+  </header>
+
+  <!-- === STEP: CAPTURE === -->
+  <ng-container *ngIf="step === 'capture'">
+    <div class="card">
+      <h2>Probar OCR sin Bocadillos</h2>
+      <p class="subtitle">
+        Este endpoint no requiere pedidos de la semana. Toma una foto de cualquier lista de precios y analiza qué texto y precios detecta el LLM.
+      </p>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="preview-container" *ngIf="imagenPreviewUrl; else noImage">
+        <img [src]="imagenPreviewUrl" alt="Preview" class="preview-img" />
+        <div class="preview-actions">
+          <button class="btn btn-primary" (click)="analizar()">🔍 Analizar con IA</button>
+          <button class="btn btn-secondary" (click)="retomar()">Tomar Otra</button>
+        </div>
+      </div>
+
+      <ng-template #noImage>
+        <div *ngIf="camaraActiva" class="camera-container">
+          <video id="debug-camera-video" autoplay playsinline class="camera-video"></video>
+          <div class="camera-actions">
+            <button class="btn btn-primary" (click)="capturarFoto()">📸 Capturar</button>
+            <button class="btn btn-secondary" (click)="detenerCamara()">Cancelar</button>
+          </div>
+        </div>
+
+        <div *ngIf="!camaraActiva" class="capture-options">
+          <button class="btn btn-primary capture-btn" (click)="abrirCamara()">📷 Usar Cámara</button>
+          <div class="divider-text">o</div>
+          <label class="btn btn-outline-primary file-label">
+            📁 Seleccionar Archivo
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+          </label>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: ANALYZING === -->
+  <ng-container *ngIf="step === 'analyzing'">
+    <div class="card analyzing-card">
+      <div class="analyzing-content">
+        <div class="spinner"></div>
+        <h2>Llamando al LLM...</h2>
+        <p class="subtitle">Enviando imagen al modelo de visión. Máximo 60 segundos.</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- === STEP: RESULTS === -->
+  <ng-container *ngIf="step === 'results' && result">
+    <!-- Métricas -->
+    <div class="card">
+      <h2>📊 Métricas de la Llamada</h2>
+      <div class="metrics-grid">
+        <div class="metric">
+          <span class="metric-value">{{ result.modeloUsado }}</span>
+          <span class="metric-label">Modelo</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ formatMs(result.tiempoMs) }}</span>
+          <span class="metric-label">Tiempo de respuesta</span>
+        </div>
+        <div class="metric" *ngIf="result.tokensTotal">
+          <span class="metric-value">{{ result.tokensTotal }}</span>
+          <span class="metric-label">Tokens totales</span>
+        </div>
+        <div class="metric" *ngIf="result.tokensPrompt">
+          <span class="metric-value">{{ result.tokensPrompt }}</span>
+          <span class="metric-label">Tokens prompt</span>
+        </div>
+        <div class="metric" *ngIf="result.tokensCompletion">
+          <span class="metric-value">{{ result.tokensCompletion }}</span>
+          <span class="metric-label">Tokens completion</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ result.nombreArchivo }}</span>
+          <span class="metric-label">Archivo</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">{{ formatBytes(result.tamanoBytes) }}</span>
+          <span class="metric-label">Tamaño</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Precios detectados -->
+    <div class="card" *ngIf="result.preciosEncontrados.length > 0">
+      <h2>💰 Precios Detectados ({{ result.preciosEncontrados.length }})</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Texto</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of result.preciosEncontrados" class="row-price">
+            <td>{{ p.texto }}</td>
+            <td class="price-val">{{ p.precio.toFixed(2) }}€</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Texto extraído -->
+    <div class="card" *ngIf="result.textoExtraido">
+      <h2>📝 Texto Extraído</h2>
+      <pre class="text-block">{{ result.textoExtraido }}</pre>
+    </div>
+
+    <!-- Respuesta cruda -->
+    <div class="card">
+      <h2>🔬 Respuesta Cruda del LLM</h2>
+      <pre class="raw-block">{{ result.rawResponse }}</pre>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="nuevoTest()">Nuevo Test</button>
+      <button class="btn btn-secondary" (click)="goBack()">Volver al Panel</button>
+    </div>
+  </ng-container>
+</div>
