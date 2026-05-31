@@ -51,6 +51,126 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
 }`;
 }
 
+export interface OcrTestResult {
+  rawResponse: string;
+  textoExtraido: string;
+  preciosEncontrados: Array<{ texto: string; precio: number }>;
+  modeloUsado: string;
+  tiempoMs: number;
+  tokensPrompt?: number;
+  tokensCompletion?: number;
+  tokensTotal?: number;
+}
+
+/**
+ * Test OCR: analiza una imagen sin contexto de bocadillos.
+ * Devuelve todo el texto que pueda leer y los precios que detecte.
+ */
+export async function testOcrImage(
+  imagenBase64: string,
+  mimeType: string,
+): Promise<OcrTestResult> {
+  const t0 = Date.now();
+
+  const prompt = `Analiza esta imagen de una lista de precios escrita a mano en español.
+
+Tu tarea:
+1. Lee TODO el texto que puedas ver en la imagen (nombres, números, precios, símbolos).
+2. Identifica todos los precios que aparezcan (números con €, "eur", o formato monetario).
+3. Para cada precio, indica el texto o nombre que tiene al lado.
+
+Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta estructura exacta:
+{
+  "textoExtraido": "todo el texto legible que ves en la imagen, línea por línea",
+  "preciosEncontrados": [
+    { "texto": "nombre o descripción junto al precio", "precio": 5.60 }
+  ]
+}`;
+
+  const payload = {
+    model: AI_VISION_MODEL,
+    stream: false,
+    temperature: 0.1,
+    max_tokens: 2048,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          {
+            type: 'image_url',
+            image_url: { url: `data:${mimeType};base64,${imagenBase64}` },
+          },
+        ],
+      },
+    ],
+  };
+
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (AI_API_KEY) headers['x-api-key'] = AI_API_KEY;
+
+  const response = await fetch(`${AI_API_URL}/v1/chat/completions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(60000),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '');
+    throw new Error(`AI gateway error ${response.status}: ${errBody.slice(0, 300)}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  };
+
+  const rawResponse: string = data.choices?.[0]?.message?.content || '';
+  const tiempoMs = Date.now() - t0;
+
+  // Intentar parsear JSON de la respuesta
+  let textoExtraido = rawResponse;
+  let preciosEncontrados: Array<{ texto: string; precio: number }> = [];
+
+  const jsonStr = extractJson(rawResponse);
+  if (jsonStr) {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (parsed.textoExtraido) textoExtraido = parsed.textoExtraido;
+      if (parsed.preciosEncontrados && Array.isArray(parsed.preciosEncontrados)) {
+        preciosEncontrados = parsed.preciosEncontrados
+          .filter((p: any) => p.precio && typeof p.precio === 'number')
+          .map((p: any) => ({
+            texto: p.texto || '',
+            precio: Math.round(p.precio * 100) / 100,
+          }));
+      }
+    } catch { /* respuesta no-JSON, usamos el texto crudo */ }
+  }
+
+  return {
+    rawResponse,
+    textoExtraido,
+    preciosEncontrados,
+    modeloUsado: AI_VISION_MODEL,
+    tiempoMs,
+    tokensPrompt: data.usage?.prompt_tokens,
+    tokensCompletion: data.usage?.completion_tokens,
+    tokensTotal: data.usage?.total_tokens,
+  };
+}
+
+function extractJson(raw: string): string | null {
+  let text = raw.trim();
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim();
+  }
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return jsonMatch ? jsonMatch[0] : null;
+}
+
 export async function analyzePriceImage(
   imagenBase64: string,
   mimeType: string,

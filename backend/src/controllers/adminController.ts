@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import Bocadillo from '../models/Bocadillo';
 import { getTargetWeek } from '../utils/dateUtils';
-import { analyzePriceImage } from '../services/ocrPriceService';
+import { analyzePriceImage, testOcrImage } from '../services/ocrPriceService';
 import {
   BocadilloContext,
   OcrResponseData,
@@ -123,6 +123,65 @@ export const postOcrPrecios = async (req: Request, res: Response) => {
       return res.status(504).json({
         success: false,
         error: 'El modelo de IA tardó demasiado en responder. Intenta con una imagen más clara.',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Error al analizar la imagen',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+/**
+ * POST /api/admin/ocr-test
+ * Endpoint de debug: analiza una imagen sin necesitar bocadillos.
+ * Devuelve texto extraído, precios encontrados, tiempos y tokens.
+ */
+export const postOcrTest = async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as MulterFile | undefined;
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se ha enviado ninguna imagen',
+      });
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Formato de imagen no soportado. Usa JPEG o PNG.',
+      });
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      return res.status(400).json({
+        success: false,
+        error: 'La imagen es demasiado grande. Máximo 10 MB.',
+      });
+    }
+
+    const imagenBase64 = file.buffer.toString('base64');
+
+    const result = await testOcrImage(imagenBase64, file.mimetype);
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        nombreArchivo: file.originalname,
+        tamanoBytes: file.size,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error en OCR test:', error);
+
+    if (error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+      return res.status(504).json({
+        success: false,
+        error: 'Timeout: el modelo tardó más de 60s en responder',
       });
     }
 

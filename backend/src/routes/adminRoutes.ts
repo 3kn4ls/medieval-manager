@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
-import { postOcrPrecios, postOcrApply } from '../controllers/adminController';
+import { postOcrPrecios, postOcrApply, postOcrTest } from '../controllers/adminController';
 
 const router = Router();
 
@@ -19,5 +19,8 @@ router.post('/ocr-precios', upload.single('imagen') as any, postOcrPrecios as an
 
 // POST /api/admin/ocr-precios/apply — Aplicar precios confirmados
 router.post('/ocr-precios/apply', postOcrApply as any);
+
+// POST /api/admin/ocr-test — Debug: analizar imagen sin contexto de bocadillos
+router.post('/ocr-test', upload.single('imagen') as any, postOcrTest as any);
 
 export default router;
