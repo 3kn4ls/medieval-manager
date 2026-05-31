@@ -165,6 +165,8 @@ export const postOcrTest = async (req: Request, res: Response) => {
 
     const imagenBase64 = file.buffer.toString('base64');
 
+    console.log(`[OCR-CONTROLLER] Test request: archivo="${file.originalname}", tipo=${file.mimetype}, tamaño=${(file.size / 1024).toFixed(1)}KB`);
+
     const result = await testOcrImage(imagenBase64, file.mimetype);
 
     res.json({

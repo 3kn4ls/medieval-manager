@@ -71,6 +71,13 @@ export async function testOcrImage(
   mimeType: string,
 ): Promise<OcrTestResult> {
   const t0 = Date.now();
+  const imagenSizeKB = (imagenBase64.length * 0.75 / 1024).toFixed(1);
+
+  console.log('[OCR-TEST] ========================================');
+  console.log(`[OCR-TEST] Inicio — ${new Date().toISOString()}`);
+  console.log(`[OCR-TEST] Modelo: ${AI_VISION_MODEL}`);
+  console.log(`[OCR-TEST] Gateway: ${AI_API_URL}/v1/chat/completions`);
+  console.log(`[OCR-TEST] Imagen: ${mimeType}, ~${imagenSizeKB} KB base64`);
 
   const prompt = `Analiza esta imagen de una lista de precios escrita a mano en español.
 
@@ -106,18 +113,29 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
     ],
   };
 
+  console.log(`[OCR-TEST] Enviando petición... (${prompt.length} chars prompt)`);
+
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (AI_API_KEY) headers['x-api-key'] = AI_API_KEY;
 
-  const response = await fetch(`${AI_API_URL}/v1/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(60000),
-  });
+  let response;
+  try {
+    response = await fetch(`${AI_API_URL}/v1/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(60000),
+    });
+  } catch (fetchError: any) {
+    console.error(`[OCR-TEST] Error fetch: ${fetchError.message}`);
+    throw fetchError;
+  }
+
+  console.log(`[OCR-TEST] Respuesta HTTP: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
     const errBody = await response.text().catch(() => '');
+    console.error(`[OCR-TEST] Error body (primeros 500 chars): ${errBody.slice(0, 500)}`);
     throw new Error(`AI gateway error ${response.status}: ${errBody.slice(0, 300)}`);
   }
 
@@ -129,25 +147,52 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
   const rawResponse: string = data.choices?.[0]?.message?.content || '';
   const tiempoMs = Date.now() - t0;
 
+  console.log(`[OCR-TEST] Tiempo: ${tiempoMs}ms`);
+  console.log(`[OCR-TEST] Tokens: prompt=${data.usage?.prompt_tokens ?? '?'} completion=${data.usage?.completion_tokens ?? '?'} total=${data.usage?.total_tokens ?? '?'}`);
+  console.log(`[OCR-TEST] Respuesta cruda (${rawResponse.length} chars):`);
+  console.log(rawResponse.slice(0, 1000) + (rawResponse.length > 1000 ? '...' : ''));
+
   // Intentar parsear JSON de la respuesta
   let textoExtraido = rawResponse;
   let preciosEncontrados: Array<{ texto: string; precio: number }> = [];
 
   const jsonStr = extractJson(rawResponse);
   if (jsonStr) {
+    console.log(`[OCR-TEST] JSON extraído (${jsonStr.length} chars):`);
+    console.log(jsonStr.slice(0, 1000));
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.textoExtraido) textoExtraido = parsed.textoExtraido;
+      console.log(`[OCR-TEST] JSON parseado OK. Keys: ${Object.keys(parsed).join(', ')}`);
+      if (parsed.textoExtraido) {
+        textoExtraido = parsed.textoExtraido;
+      }
       if (parsed.preciosEncontrados && Array.isArray(parsed.preciosEncontrados)) {
+        console.log(`[OCR-TEST] preciosEncontrados array con ${parsed.preciosEncontrados.length} items`);
         preciosEncontrados = parsed.preciosEncontrados
-          .filter((p: any) => p.precio && typeof p.precio === 'number')
+          .filter((p: any, i: number) => {
+            const ok = p && typeof p.precio === 'number' && !isNaN(p.precio);
+            if (!ok) console.log(`[OCR-TEST]   [#${i}] DESCARTADO — precio="${p?.precio}" (${typeof p?.precio}) — ${JSON.stringify(p).slice(0, 100)}`);
+            return ok;
+          })
           .map((p: any) => ({
             texto: p.texto || '',
             precio: Math.round(p.precio * 100) / 100,
           }));
+      } else {
+        console.log(`[OCR-TEST] preciosEncontrados NO es array. Tipo: ${typeof parsed.preciosEncontrados}. Valor: ${JSON.stringify(parsed.preciosEncontrados)?.slice(0, 200)}`);
       }
-    } catch { /* respuesta no-JSON, usamos el texto crudo */ }
+    } catch (parseErr: any) {
+      console.error(`[OCR-TEST] Error parseando JSON: ${parseErr.message}`);
+    }
+  } else {
+    console.log('[OCR-TEST] No se pudo extraer JSON de la respuesta');
   }
+
+  console.log(`[OCR-TEST] Resultado final: ${preciosEncontrados.length} precios encontrados`);
+  for (const p of preciosEncontrados) {
+    console.log(`[OCR-TEST]   → "${p.texto}" = ${p.precio.toFixed(2)}€`);
+  }
+  console.log('[OCR-TEST] ========================================');
 
   return {
     rawResponse,
