@@ -9,6 +9,15 @@ import {
   OcrApplyPayload,
 } from '../types/ocr';
 
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  buffer: Buffer;
+  size: number;
+}
+
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
 
@@ -19,7 +28,7 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
  */
 export const postOcrPrecios = async (req: Request, res: Response) => {
   try {
-    const file = req.file;
+    const file = (req as any).file as MulterFile | undefined;
     if (!file) {
       return res.status(400).json({
         success: false,
