@@ -67,8 +67,8 @@ app.use(rateLimit({
   message: { error: 'rate_limited' },
 }));
 
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ limit: '15mb', extended: true }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 const ALLOWED_PATHS = new Set([
   '/v1/chat/completions',  // OpenAI-compatible (supports tools)
