@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { OcrPriceService, OcrTestData } from '../../services/ocr-price.service';
+import { normalizeImage } from '../../utils/image-normalizer';
 
 type DebugStep = 'capture' | 'analyzing' | 'results';
 
@@ -78,13 +79,22 @@ export class OcrDebugComponent implements OnDestroy {
     this.camaraActiva = false;
   }
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.imagenCapturada = input.files[0];
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.errorMessage = '';
+    input.value = '';
+
+    try {
+      this.imagenCapturada = await normalizeImage(file);
       if (this.imagenPreviewUrl) URL.revokeObjectURL(this.imagenPreviewUrl);
-      this.imagenPreviewUrl = URL.createObjectURL(input.files[0]);
-      this.errorMessage = '';
+      this.imagenPreviewUrl = URL.createObjectURL(this.imagenCapturada);
+    } catch (err) {
+      this.imagenCapturada = null;
+      this.errorMessage = 'No se pudo leer la imagen. Prueba con una foto en formato JPEG o PNG.';
+      console.error('Error normalizando imagen:', err);
     }
   }
 

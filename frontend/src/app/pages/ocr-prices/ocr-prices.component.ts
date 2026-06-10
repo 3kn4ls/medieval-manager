@@ -10,6 +10,7 @@ import {
   OcrApplyResponseData,
 } from '../../services/ocr-price.service';
 import { Bocadillo } from '../../models/bocadillo.model';
+import { normalizeImage } from '../../utils/image-normalizer';
 
 interface ReviewRow {
   bocadilloId: string;
@@ -155,14 +156,25 @@ export class OcrPricesComponent implements OnInit, OnDestroy {
 
   // ─── Archivo ──────────────────────────────────────
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-      this.imagenCapturada = this.selectedFile;
+    if (!input.files || input.files.length === 0) return;
+
+    this.selectedFile = input.files[0];
+    this.errorMessage = '';
+    // Permite volver a seleccionar el mismo archivo si el usuario reintenta
+    input.value = '';
+
+    try {
+      // Reescala y convierte a JPEG: evita fotos >10MB y formatos
+      // no soportados por el backend (HEIC de iPhone, etc.)
+      this.imagenCapturada = await normalizeImage(this.selectedFile);
       if (this.imagenPreviewUrl) URL.revokeObjectURL(this.imagenPreviewUrl);
-      this.imagenPreviewUrl = URL.createObjectURL(this.selectedFile);
-      this.errorMessage = '';
+      this.imagenPreviewUrl = URL.createObjectURL(this.imagenCapturada);
+    } catch (err) {
+      this.imagenCapturada = null;
+      this.errorMessage = 'No se pudo leer la imagen. Prueba con una foto en formato JPEG o PNG.';
+      console.error('Error normalizando imagen:', err);
     }
   }
 
@@ -189,6 +201,8 @@ export class OcrPricesComponent implements OnInit, OnDestroy {
         this.errorMessage = error.error?.error || 'Error al comunicarse con el servidor';
         if (error.status === 504) {
           this.errorMessage = 'El análisis tardó demasiado. Intenta con una imagen más clara y bien iluminada.';
+        } else if (error.status === 413) {
+          this.errorMessage = 'La imagen es demasiado grande. Máximo 10 MB.';
         }
         console.error('Error OCR:', error);
         this.step = 'capture';

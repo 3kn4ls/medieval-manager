@@ -91,7 +91,7 @@
           <div class="divider-text">o</div>
           <label class="btn btn-outline-primary file-label">
             📁 Seleccionar Archivo
-            <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" hidden />
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
           </label>
           <p class="form-text" style="text-align:center; margin-top:12px;">
             Formatos aceptados: JPEG, PNG. Máximo 10 MB.
