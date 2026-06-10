@@ -8,46 +8,81 @@ const AI_API_URL = (process.env.AI_API_URL || 'http://127.0.0.1:8080').replace(/
 const AI_API_KEY = process.env.AI_API_KEY || '';
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || process.env.AI_MODEL || 'gemma3:12b';
 
-function buildPrompt(bocadillos: BocadilloContext[]): string {
-  const lista = bocadillos.map((b) => {
-    const extras: string[] = [];
-    if (b.bocataPredefinido) extras.push(`predefinido: ${b.bocataPredefinido}`);
-    return [
-      `ID: ${b.id}`,
-      `Persona: ${b.nombre}`,
-      `Tamaño: ${b.tamano === 'grande' ? 'Grande' : 'Normal'}`,
-      `Pan: ${b.tipoPan}`,
-      `Ingredientes: ${b.ingredientes.join(', ')}`,
-      `Precio estimado: ${b.precioEstimado.toFixed(2)}€`,
-      ...extras,
-    ].join(' | ');
-  }).join('\n');
+const TIPO_PAN_LABELS: Record<string, string> = {
+  normal: 'Normal',
+  integral: 'Integral',
+  semillas: 'Semillas',
+  tupper: 'Tupper',
+};
 
-  return `Eres un asistente que analiza imágenes de listas de precios escritas a mano.
+/**
+ * Una línea del pedido tal y como se envía a la tienda: los bocadillos con la
+ * misma configuración se agrupan en una sola línea ("2x GRANDE - ...").
+ */
+interface LineaPedido {
+  numero: number;
+  descripcion: string;
+  precioEstimado: number;
+  bocadilloIds: string[];
+}
 
-Te voy a dar:
-1. Una imagen de una lista de precios de bocadillos escrita a mano (bolígrafo sobre papel).
-2. Una lista de los bocadillos pedidos esta semana con sus ingredientes y precios estimados.
+/**
+ * Agrupa los bocadillos con la MISMA clave y en el MISMO orden que el export
+ * a WhatsApp del frontend (summary.component.ts). La lista manuscrita de la
+ * foto sigue ese mismo orden, así que el emparejamiento puede ser posicional.
+ */
+export function buildLineasPedido(bocadillos: BocadilloContext[]): LineaPedido[] {
+  const grupos = new Map<string, BocadilloContext[]>();
+  for (const b of bocadillos) {
+    const key = `${b.tamano}-${b.tipoPan}-${[...b.ingredientes].sort().join(',')}`;
+    if (!grupos.has(key)) grupos.set(key, []);
+    grupos.get(key)!.push(b);
+  }
 
-Tu tarea:
-- Lee los precios que aparecen en la imagen.
-- Relaciona cada entrada de la imagen con el bocadillo correspondiente de la lista.
-- Para cada bocadillo que encuentres en la imagen, indica el precio exacto y tu confianza (alta/media/baja).
-- Si hay entradas en la imagen que no corresponden a ningún bocadillo de la lista, indícalo.
-- Si hay bocadillos de la lista que no encuentras en la imagen, indícalo.
-- Los precios deben ser números con hasta 2 decimales (ej: 5.60).
-- Ignora cualquier texto que no sea un precio o un nombre de bocadillo/persona.
+  return Array.from(grupos.values()).map((grupo, idx) => {
+    const sample = grupo[0];
+    const panLabel = TIPO_PAN_LABELS[sample.tipoPan] || sample.tipoPan;
+    let descripcion = `${grupo.length}x ${sample.tamano === 'grande' ? 'GRANDE' : 'NORMAL'}`;
+    descripcion += ` - Pan ${panLabel}`;
+    descripcion += ` - Ingredientes: ${sample.ingredientes.join(', ')}`;
+    if (sample.bocataPredefinido) descripcion += ` (${sample.bocataPredefinido})`;
+    return {
+      numero: idx + 1,
+      descripcion,
+      precioEstimado: sample.precioEstimado,
+      bocadilloIds: grupo.map((b) => b.id),
+    };
+  });
+}
 
-LISTA DE BOCADILLOS DE ESTA SEMANA:
+function buildPrompt(lineas: LineaPedido[]): string {
+  const lista = lineas
+    .map((l) => `LÍNEA ${l.numero}: ${l.descripcion} | precio estimado por unidad: ${l.precioEstimado.toFixed(2)}€`)
+    .join('\n');
+
+  return `Eres un experto leyendo listas de precios manuscritas en español (bolígrafo sobre papel).
+
+CONTEXTO: Cada semana enviamos a la tienda una lista numerada de bocadillos. La tienda apunta a mano el precio de cada línea y le hacemos una foto. La lista manuscrita de la foto está CASI SIEMPRE EN EL MISMO ORDEN que la lista de abajo.
+
+LISTA ENVIADA A LA TIENDA (en este orden exacto):
 ${lista}
+
+INSTRUCCIONES:
+1. Lee la imagen línea por línea, de arriba abajo.
+2. Empareja cada línea manuscrita con una LÍNEA de la lista usando PRIMERO la posición (la 1ª línea de la foto suele ser la LÍNEA 1, la 2ª la LÍNEA 2, etc.) y DESPUÉS el texto (ingredientes, tamaño) como confirmación. Si una línea de la foto está tachada o no tiene precio, no la asignes.
+3. Los precios manuscritos pueden usar coma decimal ("5,60"), el símbolo €, o solo el número. Conviértelos siempre a número con punto decimal y máximo 2 decimales (ej: 5.60).
+4. El precio anotado es POR UNIDAD aunque la línea sea "2x" o "3x".
+5. Usa el precio estimado como referencia de plausibilidad: si el precio que lees es más del doble o menos de la mitad del estimado, revisa la lectura y baja la confianza.
+6. Confianza: "alta" si el precio se lee con claridad y la posición/texto coinciden; "media" si dudas de algún dígito; "baja" si el emparejamiento es dudoso.
+7. En "textoLeido" copia el texto manuscrito tal y como lo leíste, para poder auditarlo.
 
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta estructura exacta:
 {
-  "asignaciones": [
-    { "bocadilloId": "el ID exacto de la lista", "precio": 5.60, "confianza": "alta" }
+  "lineas": [
+    { "linea": 1, "precio": 5.60, "confianza": "alta", "textoLeido": "texto manuscrito de esa línea" }
   ],
-  "noMapeados": ["bocadilloId1", "bocadilloId2"],
-  "preciosNoAsignados": ["descripción de la entrada no emparejada"]
+  "lineasNoEncontradas": [3],
+  "textoNoAsignado": ["texto de la foto que no corresponde a ninguna línea de la lista"]
 }`;
 }
 
@@ -224,13 +259,18 @@ export async function analyzePriceImage(
   resultado: OcrResultado;
   rawResponse: string;
 }> {
-  const systemPrompt = buildPrompt(bocadillos);
+  const t0 = Date.now();
+  const lineas = buildLineasPedido(bocadillos);
+  const systemPrompt = buildPrompt(lineas);
+
+  console.log(`[OCR] Análisis: ${bocadillos.length} bocadillos en ${lineas.length} líneas, modelo=${AI_VISION_MODEL}, imagen=${mimeType} ~${(imagenBase64.length * 0.75 / 1024).toFixed(0)}KB`);
 
   const payload = {
     model: AI_VISION_MODEL,
     stream: false,
     temperature: 0.1,
     max_tokens: 2048,
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'user',
@@ -254,7 +294,7 @@ export async function analyzePriceImage(
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(90000),
   });
 
   if (!response.ok) {
@@ -265,73 +305,74 @@ export async function analyzePriceImage(
   const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const rawResponse: string = data.choices?.[0]?.message?.content || '';
 
-  const resultado = parseOcrResponse(rawResponse, bocadillos);
+  console.log(`[OCR] Respuesta en ${Date.now() - t0}ms (${rawResponse.length} chars): ${rawResponse.slice(0, 500)}`);
+
+  const resultado = parseOcrResponse(rawResponse, lineas, bocadillos);
+
+  console.log(`[OCR] Resultado: ${resultado.asignaciones.length} asignaciones, ${resultado.noMapeados.length} sin mapear, ${resultado.preciosNoAsignados.length} entradas sueltas`);
 
   return { resultado, rawResponse };
 }
 
-function parseOcrResponse(raw: string, bocadillos: BocadilloContext[]): OcrResultado {
-  const validIds = new Set(bocadillos.map((b) => b.id));
+interface LineaRespuesta {
+  linea: number;
+  precio: number;
+  confianza: 'alta' | 'media' | 'baja';
+  textoLeido?: string;
+}
 
-  // Intentar extraer JSON del texto (puede venir envuelto en ```json ... ```)
-  let jsonStr = raw.trim();
-  const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlockMatch) {
-    jsonStr = codeBlockMatch[1].trim();
-  }
+function parseOcrResponse(
+  raw: string,
+  lineas: LineaPedido[],
+  bocadillos: BocadilloContext[],
+): OcrResultado {
+  const fallido = (motivo: string): OcrResultado => ({
+    asignaciones: [],
+    noMapeados: bocadillos.map((b) => b.id),
+    preciosNoAsignados: [motivo],
+  });
 
-  let parsed: OcrResultado;
+  const jsonStr = extractJson(raw);
+  if (!jsonStr) return fallido('No se pudo parsear la respuesta del modelo');
+
+  let parsed: {
+    lineas?: LineaRespuesta[];
+    lineasNoEncontradas?: number[];
+    textoNoAsignado?: string[];
+  };
   try {
     parsed = JSON.parse(jsonStr);
   } catch {
-    // Intentar encontrar un objeto JSON en el texto
-    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-      } catch {
-        return {
-          asignaciones: [],
-          noMapeados: bocadillos.map((b) => b.id),
-          preciosNoAsignados: ['No se pudo parsear la respuesta del modelo'],
-        };
-      }
-    } else {
-      return {
-        asignaciones: [],
-        noMapeados: bocadillos.map((b) => b.id),
-        preciosNoAsignados: ['No se pudo parsear la respuesta del modelo'],
-      };
+    return fallido('No se pudo parsear la respuesta del modelo');
+  }
+
+  const lineasPorNumero = new Map(lineas.map((l) => [l.numero, l]));
+
+  // Expandir cada línea con precio a una asignación por bocadillo del grupo
+  const asignaciones: OcrAsignacion[] = [];
+  const lineasAsignadas = new Set<number>();
+
+  for (const item of Array.isArray(parsed.lineas) ? parsed.lineas : []) {
+    const linea = lineasPorNumero.get(item?.linea);
+    if (!linea || lineasAsignadas.has(linea.numero)) continue;
+    if (typeof item.precio !== 'number' || isNaN(item.precio) || item.precio <= 0 || item.precio >= 100) continue;
+
+    lineasAsignadas.add(linea.numero);
+    const precio = Math.round(item.precio * 100) / 100;
+    const confianza = ['alta', 'media', 'baja'].includes(item.confianza) ? item.confianza : 'media';
+    for (const bocadilloId of linea.bocadilloIds) {
+      asignaciones.push({ bocadilloId, precio, confianza });
     }
   }
 
-  // Validar y limpiar asignaciones
-  const asignaciones: OcrAsignacion[] = (parsed.asignaciones || [])
-    .filter((a: OcrAsignacion) => validIds.has(a.bocadilloId) && typeof a.precio === 'number' && a.precio > 0)
-    .map((a: OcrAsignacion) => ({
-      bocadilloId: a.bocadilloId,
-      precio: Math.round(a.precio * 100) / 100,
-      confianza: ['alta', 'media', 'baja'].includes(a.confianza) ? a.confianza : 'media',
-    }));
+  // Todo bocadillo cuya línea no recibió precio queda como no mapeado
+  const noMapeados: string[] = lineas
+    .filter((l) => !lineasAsignadas.has(l.numero))
+    .flatMap((l) => l.bocadilloIds);
 
-  // Validar noMapeados
-  const noMapeados: string[] = (parsed.noMapeados || [])
-    .filter((id: string) => validIds.has(id));
+  const preciosNoAsignados: string[] = Array.isArray(parsed.textoNoAsignado)
+    ? parsed.textoNoAsignado.filter((t): t is string => typeof t === 'string').slice(0, 20)
+    : [];
 
-  // Marcar los bocadillos que no aparecen ni en asignaciones ni en noMapeados
-  const mencionados = new Set([
-    ...asignaciones.map((a) => a.bocadilloId),
-    ...noMapeados,
-  ]);
-  for (const b of bocadillos) {
-    if (!mencionados.has(b.id)) {
-      noMapeados.push(b.id);
-    }
-  }
-
-  return {
-    asignaciones,
-    noMapeados,
-    preciosNoAsignados: parsed.preciosNoAsignados || [],
-  };
+  return { asignaciones, noMapeados, preciosNoAsignados };
 }

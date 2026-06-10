@@ -19,7 +19,7 @@ interface MulterFile {
 }
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * POST /api/admin/ocr-precios
@@ -39,7 +39,7 @@ export const postOcrPrecios = async (req: Request, res: Response) => {
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       return res.status(400).json({
         success: false,
-        error: 'Formato de imagen no soportado. Usa JPEG o PNG.',
+        error: 'Formato de imagen no soportado. Usa JPEG, PNG o WebP.',
       });
     }
 
@@ -152,7 +152,7 @@ export const postOcrTest = async (req: Request, res: Response) => {
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       return res.status(400).json({
         success: false,
-        error: 'Formato de imagen no soportado. Usa JPEG o PNG.',
+        error: 'Formato de imagen no soportado. Usa JPEG, PNG o WebP.',
       });
     }
 
