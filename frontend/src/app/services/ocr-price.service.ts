@@ -92,6 +92,7 @@ export interface OcrTestData {
   tokensPrompt?: number;
   tokensCompletion?: number;
   tokensTotal?: number;
+  finishReason?: string;
   nombreArchivo: string;
   tamanoBytes: number;
 }

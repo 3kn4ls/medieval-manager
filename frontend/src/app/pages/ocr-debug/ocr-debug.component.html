@@ -85,6 +85,10 @@
           <span class="metric-value">{{ result.tokensCompletion }}</span>
           <span class="metric-label">Tokens completion</span>
         </div>
+        <div class="metric" *ngIf="result.finishReason" [class.metric-warning]="result.finishReason === 'length'">
+          <span class="metric-value">{{ result.finishReason }}</span>
+          <span class="metric-label">Finish reason</span>
+        </div>
         <div class="metric">
           <span class="metric-value">{{ result.nombreArchivo }}</span>
           <span class="metric-label">Archivo</span>

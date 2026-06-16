@@ -7,6 +7,10 @@ import {
 const AI_API_URL = (process.env.AI_API_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
 const AI_API_KEY = process.env.AI_API_KEY || '';
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || process.env.AI_MODEL || 'gemma3:12b';
+// Los modelos de razonamiento ("thinking") gastan tokens de completion en el
+// razonamiento ANTES de emitir el contenido. Con un límite bajo (p.ej. 2048)
+// se truncan razonando y devuelven content vacío. Generoso por defecto.
+const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '8192', 10);
 
 const TIPO_PAN_LABELS: Record<string, string> = {
   normal: 'Normal',
@@ -96,6 +100,7 @@ export interface OcrTestResult {
   tokensPrompt?: number;
   tokensCompletion?: number;
   tokensTotal?: number;
+  finishReason?: string;
 }
 
 /**
@@ -134,7 +139,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
     model: AI_VISION_MODEL,
     stream: false,
     temperature: 0.1,
-    max_tokens: 2048,
+    max_tokens: AI_MAX_TOKENS,
     messages: [
       {
         role: 'user',
@@ -149,7 +154,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
     ],
   };
 
-  console.log(`[OCR-TEST] Enviando petición... (${prompt.length} chars prompt)`);
+  console.log(`[OCR-TEST] Enviando petición... (${prompt.length} chars prompt, max_tokens=${AI_MAX_TOKENS})`);
 
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (AI_API_KEY) headers['x-api-key'] = AI_API_KEY;
@@ -160,7 +165,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(110000),
     });
   } catch (fetchError: any) {
     console.error(`[OCR-TEST] Error fetch: ${fetchError.message}`);
@@ -176,14 +181,23 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{ message?: { content?: string; reasoning?: string; reasoning_content?: string }; finish_reason?: string }>;
     usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
   };
 
-  const rawResponse: string = data.choices?.[0]?.message?.content || '';
+  const choice = data.choices?.[0];
+  const reasoning = choice?.message?.reasoning || choice?.message?.reasoning_content || '';
+  // Si el contenido viene vacío (modelo de razonamiento truncado), caemos al
+  // texto de razonamiento: a veces el JSON quedó ahí antes del corte.
+  const rawResponse: string = choice?.message?.content || reasoning || '';
+  const finishReason = choice?.finish_reason;
   const tiempoMs = Date.now() - t0;
 
   console.log(`[OCR-TEST] Tiempo: ${tiempoMs}ms`);
+  console.log(`[OCR-TEST] finish_reason=${finishReason ?? '?'} | content=${(choice?.message?.content || '').length} chars | reasoning=${reasoning.length} chars`);
+  if (finishReason === 'length') {
+    console.warn(`[OCR-TEST] ⚠️ Respuesta TRUNCADA por max_tokens (${AI_MAX_TOKENS}). Sube AI_MAX_TOKENS o usa un modelo de visión que no razone tanto.`);
+  }
   console.log(`[OCR-TEST] Tokens: prompt=${data.usage?.prompt_tokens ?? '?'} completion=${data.usage?.completion_tokens ?? '?'} total=${data.usage?.total_tokens ?? '?'}`);
   console.log(`[OCR-TEST] Respuesta cruda (${rawResponse.length} chars):`);
   console.log(rawResponse.slice(0, 1000) + (rawResponse.length > 1000 ? '...' : ''));
@@ -239,6 +253,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
     tokensPrompt: data.usage?.prompt_tokens,
     tokensCompletion: data.usage?.completion_tokens,
     tokensTotal: data.usage?.total_tokens,
+    finishReason,
   };
 }
 
@@ -270,7 +285,7 @@ export async function analyzePriceImage(
     model: AI_VISION_MODEL,
     stream: false,
     temperature: 0.1,
-    max_tokens: 2048,
+    max_tokens: AI_MAX_TOKENS,
     response_format: { type: 'json_object' },
     messages: [
       {
@@ -303,10 +318,17 @@ export async function analyzePriceImage(
     throw new Error(`AI gateway error ${response.status}: ${errBody.slice(0, 300)}`);
   }
 
-  const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const rawResponse: string = data.choices?.[0]?.message?.content || '';
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string; reasoning?: string; reasoning_content?: string }; finish_reason?: string }>;
+  };
+  const choice = data.choices?.[0];
+  const reasoning = choice?.message?.reasoning || choice?.message?.reasoning_content || '';
+  const rawResponse: string = choice?.message?.content || reasoning || '';
 
-  console.log(`[OCR] Respuesta en ${Date.now() - t0}ms (${rawResponse.length} chars): ${rawResponse.slice(0, 500)}`);
+  if (choice?.finish_reason === 'length') {
+    console.warn(`[OCR] ⚠️ Respuesta TRUNCADA por max_tokens (${AI_MAX_TOKENS}). content vacío => probablemente modelo de razonamiento. Sube AI_MAX_TOKENS o usa un modelo de visión.`);
+  }
+  console.log(`[OCR] Respuesta en ${Date.now() - t0}ms — finish_reason=${choice?.finish_reason ?? '?'}, content=${(choice?.message?.content || '').length} chars, reasoning=${reasoning.length} chars: ${rawResponse.slice(0, 500)}`);
 
   const resultado = parseOcrResponse(rawResponse, lineas, bocadillos);
 
