@@ -21,7 +21,9 @@
       "Bash(git ls-tree *)",
       "Bash(dir C:wsmedieval-manager *)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm view *)",
+      "Bash(Out-String)"
     ]
   }
 }
