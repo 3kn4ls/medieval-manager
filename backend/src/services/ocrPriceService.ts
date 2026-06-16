@@ -11,6 +11,11 @@ const AI_VISION_MODEL = process.env.AI_VISION_MODEL || process.env.AI_MODEL || '
 // razonamiento ANTES de emitir el contenido. Con un límite bajo (p.ej. 2048)
 // se truncan razonando y devuelven content vacío. Generoso por defecto.
 const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '8192', 10);
+// Para modelos de razonamiento: limita (o desactiva) el "pensar" antes de
+// responder. Opt-in vía env; si está vacío no se envía (no rompe modelos que
+// no lo soporten). Valores típicos: 'minimal' | 'low' | 'medium' | 'high'.
+const AI_REASONING_EFFORT = process.env.AI_REASONING_EFFORT || '';
+const reasoningField = AI_REASONING_EFFORT ? { reasoning_effort: AI_REASONING_EFFORT } : {};
 
 const TIPO_PAN_LABELS: Record<string, string> = {
   normal: 'Normal',
@@ -64,30 +69,31 @@ function buildPrompt(lineas: LineaPedido[]): string {
     .map((l) => `LÍNEA ${l.numero}: ${l.descripcion} | precio estimado por unidad: ${l.precioEstimado.toFixed(2)}€`)
     .join('\n');
 
-  return `Eres un experto leyendo listas de precios manuscritas en español (bolígrafo sobre papel).
+  return `Eres un lector de precios. Tu ÚNICO objetivo es leer, para cada línea numerada de la foto, su PRECIO. NO necesitas leer ni transcribir los ingredientes.
 
-CONTEXTO: Cada semana enviamos a la tienda una lista numerada de bocadillos. La tienda apunta a mano el precio de cada línea y le hacemos una foto. La lista manuscrita de la foto está CASI SIEMPRE EN EL MISMO ORDEN que la lista de abajo.
+CONTEXTO: Cada semana enviamos a la tienda esta lista numerada de bocadillos. La tienda apunta a mano el precio de cada línea y le hacemos una foto. La foto está CASI SIEMPRE EN EL MISMO ORDEN que esta lista.
 
 LISTA ENVIADA A LA TIENDA (en este orden exacto):
 ${lista}
 
 INSTRUCCIONES:
-0. La foto puede estar rotada o ligeramente inclinada (hecha con el móvil). Reoriéntala mentalmente y léela en cualquier orientación.
-1. Lee la imagen línea por línea, de arriba abajo. Cada línea suele empezar con su número rodeado con un círculo (①, ②, ...); úsalo como ancla para identificar la LÍNEA. Una línea puede agrupar varias unidades ("2x ...") y llevar el precio escrito como "2 x 4,40": en ese caso el precio por unidad es 4,40.
-2. Empareja cada línea manuscrita con una LÍNEA de la lista usando PRIMERO la posición (la 1ª línea de la foto suele ser la LÍNEA 1, la 2ª la LÍNEA 2, etc.) y DESPUÉS el texto (ingredientes, tamaño) como confirmación. Si una línea de la foto está tachada o no tiene precio, no la asignes.
-3. Los precios manuscritos pueden usar coma decimal ("5,60"), el símbolo €, o solo el número. Conviértelos siempre a número con punto decimal y máximo 2 decimales (ej: 5.60).
-4. El precio anotado es POR UNIDAD aunque la línea sea "2x" o "3x".
-5. Usa el precio estimado como referencia de plausibilidad: si el precio que lees es más del doble o menos de la mitad del estimado, revisa la lectura y baja la confianza.
-6. Confianza: "alta" si el precio se lee con claridad y la posición/texto coinciden; "media" si dudas de algún dígito; "baja" si el emparejamiento es dudoso.
-7. En "textoLeido" copia el texto manuscrito tal y como lo leíste, para poder auditarlo.
+0. La foto puede estar rotada o inclinada (hecha con el móvil). Léela en cualquier orientación.
+1. Cada línea de la foto empieza con su número rodeado por un círculo (①, ②, ③, ...). Ese número ES la LÍNEA. Empareja la ① con la LÍNEA 1, la ② con la LÍNEA 2, etc. La posición/número manda; NO hace falta que leas los ingredientes.
+2. Una línea puede agrupar varias unidades y llevar el precio escrito como "2 x 4,40": en ese caso el precio POR UNIDAD es 4,40.
+3. Los precios pueden venir con coma decimal ("5,60"), con € o solo el número. Devuélvelos como número con punto decimal y 2 decimales (ej: 5.60). El precio es POR UNIDAD aunque la línea sea "2x".
+4. Si una línea de la foto está tachada o sin precio, no la asignes (ponla en "lineasNoEncontradas").
+5. Plausibilidad: si el precio leído es más del doble o menos de la mitad del estimado, baja la confianza.
+6. Confianza: "alta" si el precio se lee con claridad; "media" si dudas de algún dígito; "baja" si dudas del emparejamiento.
+
+IMPORTANTE: NO deliberes sobre el significado de las palabras ni intentes transcribir los ingredientes. Si una palabra es ilegible, ignórala. Responde DIRECTAMENTE con el JSON, sin razonar en voz alta.
 
 Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta estructura exacta:
 {
   "lineas": [
-    { "linea": 1, "precio": 5.60, "confianza": "alta", "textoLeido": "texto manuscrito de esa línea" }
+    { "linea": 1, "precio": 5.60, "confianza": "alta", "textoLeido": "el precio tal como está escrito, p.ej. '2 x 4,40'" }
   ],
   "lineasNoEncontradas": [3],
-  "textoNoAsignado": ["texto de la foto que no corresponde a ninguna línea de la lista"]
+  "textoNoAsignado": ["precio suelto de la foto que no corresponde a ninguna línea"]
 }`;
 }
 
@@ -123,11 +129,11 @@ export async function testOcrImage(
   const prompt = `Analiza esta imagen de una lista de precios escrita a mano en español.
 
 Tu tarea:
-1. Lee TODO el texto que puedas ver en la imagen (nombres, números, precios, símbolos).
-2. Identifica todos los precios que aparezcan (números con €, "eur", o formato monetario).
+1. Lee el texto que puedas ver en la imagen (nombres, números, precios, símbolos). Si una palabra es ilegible, pon tu mejor aproximación y sigue — NO deliberes palabra por palabra.
+2. Identifica todos los precios que aparezcan (números con €, "eur", o formato monetario, p.ej. "4,40" o "2 x 4,40").
 3. Para cada precio, indica el texto o nombre que tiene al lado.
 
-Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta estructura exacta:
+NO razones en voz alta. Responde DIRECTAMENTE y ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con esta estructura exacta:
 {
   "textoExtraido": "todo el texto legible que ves en la imagen, línea por línea",
   "preciosEncontrados": [
@@ -140,6 +146,7 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones) con e
     stream: false,
     temperature: 0.1,
     max_tokens: AI_MAX_TOKENS,
+    ...reasoningField,
     messages: [
       {
         role: 'user',
@@ -286,6 +293,7 @@ export async function analyzePriceImage(
     stream: false,
     temperature: 0.1,
     max_tokens: AI_MAX_TOKENS,
+    ...reasoningField,
     response_format: { type: 'json_object' },
     messages: [
       {
