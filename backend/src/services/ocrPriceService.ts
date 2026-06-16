@@ -68,7 +68,8 @@ LISTA ENVIADA A LA TIENDA (en este orden exacto):
 ${lista}
 
 INSTRUCCIONES:
-1. Lee la imagen línea por línea, de arriba abajo.
+0. La foto puede estar rotada o ligeramente inclinada (hecha con el móvil). Reoriéntala mentalmente y léela en cualquier orientación.
+1. Lee la imagen línea por línea, de arriba abajo. Cada línea suele empezar con su número rodeado con un círculo (①, ②, ...); úsalo como ancla para identificar la LÍNEA. Una línea puede agrupar varias unidades ("2x ...") y llevar el precio escrito como "2 x 4,40": en ese caso el precio por unidad es 4,40.
 2. Empareja cada línea manuscrita con una LÍNEA de la lista usando PRIMERO la posición (la 1ª línea de la foto suele ser la LÍNEA 1, la 2ª la LÍNEA 2, etc.) y DESPUÉS el texto (ingredientes, tamaño) como confirmación. Si una línea de la foto está tachada o no tiene precio, no la asignes.
 3. Los precios manuscritos pueden usar coma decimal ("5,60"), el símbolo €, o solo el número. Conviértelos siempre a número con punto decimal y máximo 2 decimales (ej: 5.60).
 4. El precio anotado es POR UNIDAD aunque la línea sea "2x" o "3x".
