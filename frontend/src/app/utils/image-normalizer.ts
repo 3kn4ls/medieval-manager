@@ -46,7 +46,11 @@ export async function normalizeImage(file: Blob): Promise<Blob> {
 async function decodeImage(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
   if (typeof createImageBitmap === 'function') {
     try {
-      return await createImageBitmap(file);
+      // `from-image` aplica la orientación EXIF (fotos de móvil suelen llevar
+      // un flag de rotación). Sin esto, algunos navegadores devuelven el
+      // bitmap girado respecto a lo que ve el usuario, lo que empeora el OCR
+      // y difiere del fallback con <img> (que sí respeta EXIF por defecto).
+      return await createImageBitmap(file, { imageOrientation: 'from-image' });
     } catch {
       // Algunos navegadores no decodifican ciertos formatos vía createImageBitmap;
       // probamos con un elemento <img> antes de rendirnos.
