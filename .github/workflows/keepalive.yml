@@ -19,7 +19,7 @@ on:
     # Cada 10 min, miércoles 22:00-23:50 UTC (early jueves Madrid)
     - cron: '*/10 22-23 * * 3'
     # Cada 10 min, todo el jueves UTC
-    - cron: '*/10 * * * 4'
+    - cron: '*/2 * * * 4'
   workflow_dispatch:  # Trigger manual para pruebas
 
 # Permitir solo una ejecución en curso, cancelar las anteriores si se solapan
