@@ -128,7 +128,7 @@ export class PaymentsComponent implements OnInit {
 
   processPayments(bocadillos: Bocadillo[]) {
     this.summary.totalEstimado = bocadillos.reduce(
-      (acc, b) => acc + (b.precio ?? b.precioEstimado ?? 0),
+      (acc, b) => acc + (b.precioEstimado ?? 0),
       0,
     );
     this.summary.countTotal = bocadillos.length;
