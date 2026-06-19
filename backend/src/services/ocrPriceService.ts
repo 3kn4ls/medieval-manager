@@ -12,9 +12,12 @@ const AI_VISION_MODEL = process.env.AI_VISION_MODEL || process.env.AI_MODEL || '
 // se truncan razonando y devuelven content vacío. Generoso por defecto.
 const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '8192', 10);
 // Para modelos de razonamiento: limita (o desactiva) el "pensar" antes de
-// responder. Opt-in vía env; si está vacío no se envía (no rompe modelos que
-// no lo soporten). Valores típicos: 'minimal' | 'low' | 'medium' | 'high'.
-const AI_REASONING_EFFORT = process.env.AI_REASONING_EFFORT || '';
+// responder. Por defecto 'low' para evitar que un modelo "thinking" gaste todo
+// el presupuesto razonando y deje `content` vacío (justo el fallo observado:
+// finish_reason=stop, content=0 chars, reasoning=25k chars). Valores típicos:
+// 'minimal' | 'low' | 'medium' | 'high'. Pon AI_REASONING_EFFORT='' para no
+// enviarlo (los modelos que no lo soporten lo ignoran de todas formas).
+const AI_REASONING_EFFORT = process.env.AI_REASONING_EFFORT ?? 'low';
 const reasoningField = AI_REASONING_EFFORT ? { reasoning_effort: AI_REASONING_EFFORT } : {};
 
 const TIPO_PAN_LABELS: Record<string, string> = {
@@ -213,7 +216,7 @@ NO razones en voz alta. Responde DIRECTAMENTE y ÚNICAMENTE con un JSON válido 
   let textoExtraido = rawResponse;
   let preciosEncontrados: Array<{ texto: string; precio: number }> = [];
 
-  const jsonStr = extractJson(rawResponse);
+  const jsonStr = extractJson(rawResponse, ['textoExtraido', 'preciosEncontrados']);
   if (jsonStr) {
     console.log(`[OCR-TEST] JSON extraído (${jsonStr.length} chars):`);
     console.log(jsonStr.slice(0, 1000));
@@ -264,14 +267,68 @@ NO razones en voz alta. Responde DIRECTAMENTE y ÚNICAMENTE con un JSON válido 
   };
 }
 
-function extractJson(raw: string): string | null {
+/**
+ * Extrae un objeto JSON *parseable* de la respuesta del modelo. Es robusto
+ * frente a:
+ *  - JSON envuelto en ```code fences```.
+ *  - Modelos de razonamiento que emiten miles de caracteres de prosa y, quizá,
+ *    un JSON al final. La regex greedy anterior (`/\{[\s\S]*\}/`) cogía del
+ *    primer "{" al último "}" de TODO el texto → nunca parseaba.
+ *
+ * Escanea todos los objetos { ... } con balance de llaves (ignorando las que
+ * aparezcan dentro de strings) y, recorriendo de atrás hacia delante (la
+ * respuesta final suele ser el último objeto), devuelve el primero que parsee
+ * y —si se piden `preferKeys`— que contenga alguna de esas claves. Si ninguno
+ * tiene las claves esperadas, devuelve el último que simplemente parsee.
+ */
+function extractJson(raw: string, preferKeys: string[] = []): string | null {
+  if (!raw) return null;
   let text = raw.trim();
   const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) {
     text = codeBlockMatch[1].trim();
   }
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  return jsonMatch ? jsonMatch[0] : null;
+
+  const candidates: string[] = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{') {
+      if (depth++ === 0) start = i;
+    } else if (ch === '}') {
+      if (depth > 0 && --depth === 0 && start !== -1) {
+        candidates.push(text.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  if (candidates.length === 0) return null;
+
+  let fallback: string | null = null;
+  for (let i = candidates.length - 1; i >= 0; i--) {
+    let obj: unknown;
+    try {
+      obj = JSON.parse(candidates[i]);
+    } catch {
+      continue;
+    }
+    if (fallback === null) fallback = candidates[i];
+    const hasKey =
+      !preferKeys.length ||
+      (obj !== null && typeof obj === 'object' && preferKeys.some((k) => k in (obj as object)));
+    if (hasKey) return candidates[i];
+  }
+  return fallback;
 }
 
 export async function analyzePriceImage(
@@ -330,15 +387,23 @@ export async function analyzePriceImage(
     choices?: Array<{ message?: { content?: string; reasoning?: string; reasoning_content?: string }; finish_reason?: string }>;
   };
   const choice = data.choices?.[0];
+  const content = choice?.message?.content || '';
   const reasoning = choice?.message?.reasoning || choice?.message?.reasoning_content || '';
-  const rawResponse: string = choice?.message?.content || reasoning || '';
+  // Modelos de razonamiento ("thinking") a veces vuelcan TODO en `reasoning` y
+  // dejan `content` vacío. Como último recurso intentamos rescatar el JSON del
+  // texto de razonamiento.
+  const contentEmpty = content.trim().length === 0;
+  const rawResponse: string = content || reasoning || '';
 
   if (choice?.finish_reason === 'length') {
-    console.warn(`[OCR] ⚠️ Respuesta TRUNCADA por max_tokens (${AI_MAX_TOKENS}). content vacío => probablemente modelo de razonamiento. Sube AI_MAX_TOKENS o usa un modelo de visión.`);
+    console.warn(`[OCR] ⚠️ Respuesta TRUNCADA por max_tokens (${AI_MAX_TOKENS}). Sube AI_MAX_TOKENS.`);
   }
-  console.log(`[OCR] Respuesta en ${Date.now() - t0}ms — finish_reason=${choice?.finish_reason ?? '?'}, content=${(choice?.message?.content || '').length} chars, reasoning=${reasoning.length} chars: ${rawResponse.slice(0, 500)}`);
+  if (contentEmpty && reasoning.length > 0) {
+    console.warn('[OCR] ⚠️ content vacío: el modelo solo devolvió "razonamiento". Se intentará rescatar el JSON. Para evitarlo, configura AI_REASONING_EFFORT=minimal o usa un modelo de visión (p.ej. gemma3:12b) en AI_VISION_MODEL.');
+  }
+  console.log(`[OCR] Respuesta en ${Date.now() - t0}ms — finish_reason=${choice?.finish_reason ?? '?'}, content=${content.length} chars, reasoning=${reasoning.length} chars: ${rawResponse.slice(0, 500)}`);
 
-  const resultado = parseOcrResponse(rawResponse, lineas, bocadillos);
+  const resultado = parseOcrResponse(rawResponse, lineas, bocadillos, { contentEmpty });
 
   console.log(`[OCR] Resultado: ${resultado.asignaciones.length} asignaciones, ${resultado.noMapeados.length} sin mapear, ${resultado.preciosNoAsignados.length} entradas sueltas`);
 
@@ -356,6 +421,7 @@ function parseOcrResponse(
   raw: string,
   lineas: LineaPedido[],
   bocadillos: BocadilloContext[],
+  meta: { contentEmpty?: boolean } = {},
 ): OcrResultado {
   const fallido = (motivo: string): OcrResultado => ({
     asignaciones: [],
@@ -363,8 +429,19 @@ function parseOcrResponse(
     preciosNoAsignados: [motivo],
   });
 
-  const jsonStr = extractJson(raw);
-  if (!jsonStr) return fallido('No se pudo parsear la respuesta del modelo');
+  // Si el modelo no devolvió `content` y solo razonó, el mensaje al admin debe
+  // ser accionable (es un problema de modelo/config, no de la foto).
+  const sinRespuestaUtil =
+    'El modelo no devolvió una respuesta válida (solo "razonamiento" interno, sin JSON). ' +
+    'Configura AI_REASONING_EFFORT=minimal o cambia AI_VISION_MODEL a un modelo de visión como gemma3:12b.';
+
+  const jsonStr = extractJson(raw, ['lineas', 'lineasNoEncontradas', 'textoNoAsignado']);
+  if (!jsonStr) {
+    return fallido(meta.contentEmpty ? sinRespuestaUtil : 'No se pudo extraer JSON de la respuesta del modelo.');
+  }
+  if (meta.contentEmpty) {
+    console.log('[OCR] ℹ️ JSON rescatado del texto de razonamiento (content estaba vacío).');
+  }
 
   let parsed: {
     lineas?: LineaRespuesta[];
@@ -374,7 +451,7 @@ function parseOcrResponse(
   try {
     parsed = JSON.parse(jsonStr);
   } catch {
-    return fallido('No se pudo parsear la respuesta del modelo');
+    return fallido(meta.contentEmpty ? sinRespuestaUtil : 'No se pudo parsear el JSON de la respuesta del modelo.');
   }
 
   const lineasPorNumero = new Map(lineas.map((l) => [l.numero, l]));
